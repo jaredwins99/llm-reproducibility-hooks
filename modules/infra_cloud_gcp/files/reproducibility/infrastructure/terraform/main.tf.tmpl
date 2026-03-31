@@ -1,0 +1,25 @@
+# Terraform configuration for {{project_name}} — GCP
+# TODO: Customize resources for your project
+
+terraform {
+  required_version = ">= 1.0"
+
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "google" {
+  project = var.gcp_project_id
+  region  = var.gcp_region
+
+  default_labels = {
+    project    = var.project_name
+    managed_by = "terraform"
+  }
+}
+
+# TODO: Add resources (GCS buckets, GCE instances, IAM, etc.)

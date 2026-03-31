@@ -1,0 +1,12 @@
+# Regulated data — strict ignores
+data/
+*.csv
+*.tsv
+*.parquet
+*.json.gz
+*.credentials
+*.pem
+*.key
+*.p12
+.env
+.env.*

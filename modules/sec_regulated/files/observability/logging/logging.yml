@@ -1,0 +1,28 @@
+# Audit-level logging configuration for regulated data projects
+# All access to sensitive data must be logged for compliance
+
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  audit:
+    format: "%(asctime)s [AUDIT] %(name)s %(levelname)s %(message)s"
+    datefmt: "%Y-%m-%dT%H:%M:%S%z"
+
+handlers:
+  audit_file:
+    class: logging.FileHandler
+    filename: security/audit/access.log
+    formatter: audit
+    level: INFO
+
+  console:
+    class: logging.StreamHandler
+    formatter: audit
+    level: WARNING
+
+root:
+  level: INFO
+  handlers: [console, audit_file]
+
+# TODO: Add additional loggers for data access, authentication, etc.

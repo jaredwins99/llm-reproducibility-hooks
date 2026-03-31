@@ -1,0 +1,8 @@
+# Proprietary data — do not commit
+data/raw/
+data/proprietary/
+*.credentials
+*.pem
+*.key
+.env
+.env.*

@@ -1,0 +1,29 @@
+# Terraform configuration for {{project_name}} — Azure
+# TODO: Customize resources for your project
+
+terraform {
+  required_version = ">= 1.0"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "main" {
+  name     = "rg-${var.project_name}"
+  location = var.azure_location
+
+  tags = {
+    Project   = var.project_name
+    ManagedBy = "terraform"
+  }
+}
+
+# TODO: Add resources (Storage accounts, VMs, AKS, etc.)
