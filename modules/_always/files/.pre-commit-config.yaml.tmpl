@@ -1,0 +1,33 @@
+# Pre-commit hooks — Correctness tenet
+# Hard enforcement: linters catch what they can, Claude catches the rest
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: ['--branch', 'main']
+
+  # Claude review — enforces all style guide rules that linters can't express
+  - repo: local
+    hooks:
+      - id: claude-review
+        name: Claude code review
+        entry: bash correctness/hooks/claude-review.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: commit-counter-audit
+        name: Commit-based audit (every N commits)
+        entry: bash correctness/hooks/commit-counter-audit.sh
+        language: system
+        pass_filenames: false
+        stages: [post-commit]

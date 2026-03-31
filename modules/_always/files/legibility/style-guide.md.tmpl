@@ -1,0 +1,47 @@
+# Style Guide — {{project_name}}
+
+## General Principles
+- Optimize for readability over cleverness
+- Consistent naming: pick one convention and stick to it
+- Functions do one thing
+- Move left in software: prefer declarative rules over runtime checks
+- Code speaks for itself: if you need a comment to explain what the code does, rename or refactor instead
+- Defensiveness is conditional: libraries validate inputs and handle errors explicitly. Pipelines/scripts let things crash with clear tracebacks — no gratuitous try/except or isinstance checks
+- Default to logging (saved to file), not print. Claude reads logs. Print is allowed when necessary but logging is the standard
+
+## Comments
+Comments should be extremely sparse. The vast majority of code should need no inline comments.
+
+**Allowed:**
+- Section separators (standardized format, see below)
+- "Why" comments explaining non-obvious decisions: `# workaround for pandas bug #1234`
+- Pipeline section labels within chains: `# Outcomes`, `# Time variables`
+
+**Not allowed (enforced by hook):**
+- "What" comments that restate the code: `# filter rows`, `# increment counter`, `# read file`
+- If you feel you need a "what" comment, the code isn't clear enough — rename variables or extract a function
+
+**Section separator format (standardized):**
+```
+# ———————————————————————————————————
+#      Section Title Here
+# ———————————————————————————————————
+```
+Use em dashes (`———`). This is the only accepted separator style.
+
+## Naming Conventions
+- `snake_case` for functions, variables, and modules
+- `PascalCase` for classes
+- `UPPER_CASE` for constants
+- Prefix pipeline scripts with numbers: `01_extract.py`, `02_transform.py`
+
+## Paths
+Always use OS-portable path construction. Never hardcode `/` or `\\`.
+- Python: `Path('data') / 'v001' / 'raw.parquet'` (pathlib)
+- R: `file.path('data', 'v001', 'raw.parquet')`
+
+## Code Organization
+- `src/` holds reusable library code (importable modules)
+- `scripts/` holds pipeline steps (numerically ordered, runnable)
+- Functions always live in `src/`, never in `scripts/`
+- Extract into a function only when complexity demands it, not preemptively

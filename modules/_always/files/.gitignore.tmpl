@@ -1,0 +1,25 @@
+# === Security: Secrets & credentials ===
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+security/.secrets/*
+!security/.secrets/.gitignore
+
+# === Reproducibility: OS & editor artifacts ===
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.idea/
+*.iml
+
+# === Correctness: Build & test artifacts ===
+*.log
+coverage/
+htmlcov/
+.coverage
+.claude/.commit_count

@@ -1,0 +1,23 @@
+# Deploy Keys Setup
+
+## What are deploy keys?
+SSH keys scoped to a single repository. More secure than personal access tokens for CI/CD.
+
+## Setup
+
+1. Generate a key pair:
+   ```bash
+   ssh-keygen -t ed25519 -C "{{project_name}}-deploy" -f security/.secrets/deploy_key -N ""
+   ```
+
+2. Add the public key to GitHub:
+   ```bash
+   gh repo deploy-key add security/.secrets/deploy_key.pub --title "CI deploy key"
+   ```
+
+3. Add the private key as a GitHub secret:
+   ```bash
+   gh secret set DEPLOY_KEY < security/.secrets/deploy_key
+   ```
+
+4. The private key stays in `security/.secrets/` (git-ignored). Never commit it.

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# First-time environment setup for {{project_name}}
+set -euo pipefail
+
+echo "Setting up {{project_name}}..."
+
+# Install pre-commit if available
+if command -v pre-commit &>/dev/null; then
+    echo "Installing pre-commit hooks..."
+    pre-commit install
+else
+    echo "WARNING: pre-commit not found. Install it: pip install pre-commit"
+fi
+
+echo ""
+echo "Setup complete! Run 'make check' to verify everything works."

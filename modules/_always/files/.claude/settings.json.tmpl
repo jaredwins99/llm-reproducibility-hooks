@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git *)",
+      "Bash(make *)",
+      "Bash(python *)",
+      "Bash(Rscript *)",
+      "Bash(pip install *)",
+      "Bash(uv *)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)*",
+      "Bash(git push --force)*"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "matcher": "Edit",
+        "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE '\\.(py|R|r)\"'; then make format 2>/dev/null || true; fi"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": "echo '--- Reminder: Follow CLAUDE.md conventions. Code speaks for itself. No what-comments. Em-dash separators. Functions in src/, pipelines in scripts/. Log every data step. ---'"
+      }
+    ]
+  }
+}

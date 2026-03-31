@@ -1,0 +1,29 @@
+# {{project_name}}
+
+{{project_description}}
+
+## Quick Start
+
+```bash
+make setup    # First-time setup
+make check    # Run all quality checks
+make help     # See all available targets
+```
+
+## Project Structure
+
+This project follows [The Five Tenets](legibility/architecture.md):
+
+| Folder | Tenet | Purpose |
+|---|---|---|
+| `src/` | — | Reusable library/tooling code |
+| `scripts/` | — | Pipeline steps (numerically ordered) |
+| `reproducibility/` | Reproducibility | Docker, environments, infrastructure |
+| `correctness/` | Correctness | Tests, contracts |
+| `observability/` | Observability | Logging, monitoring, runbooks |
+| `security/` | Security | Secrets, permissions, audit |
+| `legibility/` | Legibility | Style guides, conventions, ADRs |
+
+## Author
+
+{{author_name}}

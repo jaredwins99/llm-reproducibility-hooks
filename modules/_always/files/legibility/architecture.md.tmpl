@@ -1,0 +1,28 @@
+# Architecture — {{project_name}}
+
+## Overview
+{{project_description}}
+
+## The Five Tenets
+This project is organized around five guiding principles:
+
+1. **Reproducibility** — Every environment, dataset, and result can be recreated from scratch
+2. **Correctness** — Automated gates prevent bad code from reaching production
+3. **Legibility** — The project is understandable to new contributors
+4. **Observability** — Every operation produces visible, structured output
+5. **Security** — The default is safe; unsafe requires explicit opt-in
+
+## Directory Map
+```
+├── src/                  Source code (reusable tooling)
+├── scripts/              Pipeline steps (numerically ordered)
+├── data/                 Versioned data
+├── reproducibility/      Docker, environments, infrastructure
+├── correctness/          Tests, contracts
+├── observability/        Logging, monitoring, runbooks
+├── security/             Secrets, permissions, audit
+└── legibility/           Style guide, conventions, ADRs
+```
+
+## Key Decisions
+See `legibility/adr/` for Architecture Decision Records.

@@ -1,0 +1,10 @@
+{
+  "_comment": "Apply with: gh api repos/OWNER/REPO/branches/main/protection -X PUT --input security/permissions/branch-protection.json",
+  "required_status_checks": {
+    "strict": true,
+    "contexts": ["check"]
+  },
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null
+}

@@ -1,0 +1,29 @@
+# Project Conventions — {{project_name}}
+
+<!-- TODO: Populate during deep-dive session -->
+
+## Commit Messages
+Use conventional commits format:
+```
+type(scope): description
+
+types: feat, fix, refactor, test, docs, chore, ci
+```
+
+## Branching Strategy
+- `main` — production-ready code
+- `feature/*` — new features
+- `fix/*` — bug fixes
+- `refactor/*` — code improvements
+
+## Pull Request Process
+1. Create branch from `main`
+2. Make changes, ensure `make check` passes
+3. Open PR using the template
+4. Get review (automated + human)
+5. Squash merge to `main`
+
+## Scripts Naming
+Pipeline scripts are numerically prefixed:
+- `01_` through `99_` — execution order
+- Language extension matches project language

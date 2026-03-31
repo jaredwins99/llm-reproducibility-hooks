@@ -1,0 +1,32 @@
+# {{project_name}}
+
+## Overview
+{{project_description}}
+
+## Repository Structure
+See `STRUCTURE.md` for the full file tree (auto-updated every 10 commits).
+
+This project is organized by the Five Tenets: Reproducibility, Correctness, Legibility, Observability, Security.
+
+- `src/` — Reusable library and tooling code (functions always here, never in scripts/)
+- `scripts/` — Pipeline steps (numbered, sequential). Orchestrators (Makefile, dvc.yaml, _targets.R) nest here visually.
+- `outputs/` — Reports and visuals
+- `reproducibility/` — Docker, environment configs, infrastructure
+- `correctness/` — Tests, hooks
+- `observability/` — Logging, monitoring, runbooks
+- `security/` — Secrets (.gitignored), permissions, audit
+- `legibility/` — Style guide, conventions, ADRs, architecture docs
+
+## Development Commands
+Run `make help` to see all available targets. Key ones:
+- `make setup` — First-time project setup
+- `make check` — Run all quality checks (lint + test)
+- `make lint` — Run linter
+- `make format` — Run formatter
+- `make test` — Run test suite
+
+## Conventions
+- Scripts are numerically prefixed: `01_extract`, `02_transform`, etc.
+- Every function must have tests in `correctness/tests/`
+- Commit messages follow conventional commits format
+- See `legibility/conventions.md` for full details

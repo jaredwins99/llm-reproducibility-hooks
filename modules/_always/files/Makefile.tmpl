@@ -1,0 +1,30 @@
+.DEFAULT_GOAL := help
+SHELL := /bin/bash
+
+# ============================================================================
+# {{project_name}}
+# ============================================================================
+
+.PHONY: help setup check lint format test test-coverage clean
+
+help: ## Show this help message
+	@echo ""
+	@echo "  {{project_name}} — available targets:"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+
+setup: ## First-time project setup (install deps, hooks, etc.)
+	@echo "Running first-time setup..."
+	@bash scripts/setup_env.sh
+	@echo "Setup complete. Run 'make check' to verify."
+
+check: lint test ## Run all quality checks
+
+clean: ## Remove generated artifacts
+	@echo "Cleaning..."
+	@find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null || true
+	@find . -type f -name "*.pyc" -delete 2>/dev/null || true
+	@echo "Clean complete."

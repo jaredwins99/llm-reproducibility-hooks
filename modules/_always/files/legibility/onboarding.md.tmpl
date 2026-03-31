@@ -1,0 +1,36 @@
+# Onboarding — {{project_name}}
+
+## Prerequisites
+- Git
+- Docker
+- Make
+<!-- TODO: Add language-specific prerequisites -->
+
+## First-Time Setup
+
+```bash
+git clone <repo-url>
+cd {{project_name}}
+make setup
+```
+
+This will:
+1. Install language dependencies
+2. Set up pre-commit hooks
+3. Verify your environment
+
+## Verify Everything Works
+
+```bash
+make check
+```
+
+## Where to Start
+- Read `legibility/architecture.md` for the big picture
+- Read `legibility/conventions.md` for project norms
+- Read `legibility/style-guide.md` for code style
+- Check `legibility/adr/` for past decisions and their rationale
+
+## Getting Help
+- Check `observability/runbooks/` for operational procedures
+- Check `CLAUDE.md` for AI-assisted development context

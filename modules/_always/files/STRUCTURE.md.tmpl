@@ -1,0 +1,20 @@
+# Project Structure
+
+Auto-generated file tree. Updated every 10 commits.
+Run `bash correctness/hooks/update-structure.sh` to refresh manually.
+
+```
+{{project_name}}/
+├── scripts/                  Pipeline scripts (numbered, sequential)
+├── src/                      Source code (functions, tools — importable)
+├── data/                     Versioned data
+├── outputs/                  Results (reports, visuals)
+├── reproducibility/          Docker, environments, infrastructure
+├── correctness/              Tests, hooks
+├── legibility/               Style guides, conventions, ADRs
+├── observability/            Logging, monitoring, runbooks
+├── security/                 Secrets, permissions, audit
+├── Makefile                  Task runner (make help)
+├── CLAUDE.md                 AI context
+└── STRUCTURE.md              This file
+```

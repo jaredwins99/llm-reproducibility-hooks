@@ -1,0 +1,15 @@
+{
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    ".gitignore": ".gitattributes, .dockerignore, .github",
+    "reproducibility": "pyproject.toml, uv.lock, .python-version, DESCRIPTION, renv.lock, .Rprofile, Dockerfile, docker-compose.yml, .dev_template.lock",
+    "correctness": ".pre-commit-config.yaml",
+    "legibility": "ruff.toml, .lintr, CLAUDE.md, .claude, .vscode, README.md",
+    "scripts": "Makefile, dvc.yaml, _targets.R"
+  },
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true
+  }
+}
