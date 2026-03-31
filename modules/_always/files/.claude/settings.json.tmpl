@@ -9,7 +9,8 @@
       "Bash(python *)",
       "Bash(Rscript *)",
       "Bash(pip install *)",
-      "Bash(uv *)"
+      "Bash(uv *)",
+      "Bash(bash reference/stan/search.sh *)"
     ],
     "deny": [
       "Bash(rm -rf /)*",
@@ -17,6 +18,13 @@
     ]
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "type": "command",
+        "matcher": "Edit|Write",
+        "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE '\\.stan\"'; then echo 'STAN FILE DETECTED — run bash reference/stan/search.sh --from-file on this file BEFORE editing. Search the reference for the modeling approach. NEVER write Stan from memory.'; fi"
+      }
+    ],
     "PostToolUse": [
       {
         "type": "command",
