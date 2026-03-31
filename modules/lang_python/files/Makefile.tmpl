@@ -1,0 +1,12 @@
+# === Python targets ===
+lint: ## Run ruff linter
+	ruff check src/ scripts/ correctness/tests/
+
+format: ## Run ruff formatter
+	ruff format src/ scripts/ correctness/tests/
+
+test: ## Run pytest
+	python -m pytest correctness/tests/ -v
+
+test-coverage: ## Run pytest with coverage
+	python -m pytest correctness/tests/ --cov=src/{{project_name_py}} --cov-report=html

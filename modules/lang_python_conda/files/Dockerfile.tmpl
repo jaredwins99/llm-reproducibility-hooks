@@ -1,0 +1,12 @@
+FROM continuumio/miniconda3:latest
+
+WORKDIR /app
+
+COPY reproducibility/environments/environment.yml .
+RUN conda env create -f environment.yml && conda clean -afy
+
+COPY src/ src/
+COPY scripts/ scripts/
+
+SHELL ["conda", "run", "-n", "{{project_name}}", "/bin/bash", "-c"]
+CMD ["python", "-m", "{{project_name}}"]

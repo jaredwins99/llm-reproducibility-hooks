@@ -1,0 +1,51 @@
+# Ruff configuration — Legibility tenet
+# Base config applied to all Python projects
+
+line-length = 88
+target-version = "py311"
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "W",      # pycodestyle warnings
+    "I",      # isort (import sorting)
+    "N",      # pep8-naming
+    "UP",     # pyupgrade (modern syntax)
+    "B",      # flake8-bugbear (common bugs)
+    "S",      # flake8-bandit (security)
+    "A",      # flake8-builtins (no shadowing)
+    "SIM",    # flake8-simplify
+    "PT",     # flake8-pytest-style
+    "PERF",   # perflint (performance)
+    "RUF",    # ruff-specific rules
+    "C90",    # mccabe complexity
+    "PLR",    # pylint refactor
+    "PLW",    # pylint warnings
+    "PLE",    # pylint errors
+]
+
+ignore = [
+    "RUF012",  # mutable class variable — field(default_factory=) is overly verbose
+]
+
+[lint.per-file-ignores]
+"correctness/tests/**" = [
+    "S101",     # allow assert in tests
+    "PLR2004",  # allow magic values in tests
+]
+"scripts/**" = [
+    "S101",     # allow assert in scripts
+]
+
+[lint.mccabe]
+max-complexity = 10
+
+[lint.pylint]
+max-args = 5
+
+[lint.isort]
+known-first-party = ["{{project_name}}"]
+
+[format]
+quote-style = "single"

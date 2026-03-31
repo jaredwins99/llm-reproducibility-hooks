@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Setting up {{project_name}} with conda..."
+
+if ! command -v conda &>/dev/null; then
+    echo "ERROR: conda not found. Install Miniforge or Miniconda." >&2
+    exit 1
+fi
+
+conda env create -f reproducibility/environments/environment.yml || \
+    conda env update -f reproducibility/environments/environment.yml --prune
+
+echo "Activate with: conda activate {{project_name}}"
+
+if command -v pre-commit &>/dev/null; then
+    pre-commit install
+fi
+echo "Setup complete! Run 'make check' to verify."

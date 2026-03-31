@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Setting up {{project_name}} with uv..."
+
+if ! command -v uv &>/dev/null; then
+    echo "Installing uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+fi
+
+uv sync --dev
+echo "Python environment ready."
+
+if command -v pre-commit &>/dev/null; then
+    pre-commit install
+fi
+echo "Setup complete! Run 'make check' to verify."
