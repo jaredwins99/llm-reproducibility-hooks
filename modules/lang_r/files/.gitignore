@@ -1,0 +1,11 @@
+# === R ===
+.Rhistory
+.Rdata
+.RData
+.httr-oauth
+.Rproj.user/
+renv/library/
+renv/staging/
+renv/python/
+renv/sandbox/
+*.Rcheck/

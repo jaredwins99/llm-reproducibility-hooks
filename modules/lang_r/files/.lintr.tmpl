@@ -1,0 +1,46 @@
+# lintr configuration — Legibility tenet
+
+linters: linters_with_defaults(
+    # Line length
+    line_length_linter(120),
+
+    # Naming
+    object_name_linter(styles = "snake_case"),
+
+    # Assignment
+    assignment_linter(),           # require <-
+
+    # Pipe style
+    pipe_continuation_linter(),    # pipe at end of line, not start
+    # Both %>% and |> allowed; %>% preferred when . placeholder is needed
+
+    # Braces
+    brace_linter(allow_single_line = TRUE),  # closing brace on same line allowed
+    # NOTE: } else { must be on same line — R parser breaks if else starts on a new line
+
+    # Safety
+    T_and_F_symbol_linter(),       # require TRUE/FALSE, not T/F
+    seq_linter(),                  # require seq_along(), not 1:length()
+
+    # Tidyverse preference
+    undesirable_function_linter(
+      fun = c(
+        "sapply" = "use purrr::map() instead",
+        "subset" = "use dplyr::filter() instead",
+        "read.csv" = "use readr::read_csv() instead",
+        "write.csv" = "use readr::write_csv() instead"
+      )
+    ),
+
+    # Structure
+    library_call_linter(),         # all library() at top of file
+
+    # Complexity
+    cyclocomp_linter(complexity_limit = 15),
+
+    # Spacing
+    spaces_inside_linter(),        # no spaces inside parens/brackets
+
+    # Disabled
+    commented_code_linter = NULL   # allow commented-out code
+  )

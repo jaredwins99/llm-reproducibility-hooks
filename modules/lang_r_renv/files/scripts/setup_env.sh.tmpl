@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Setting up {{project_name}} with renv..."
+
+if ! command -v R &>/dev/null; then
+    echo "ERROR: R not found. Install R via rig: https://github.com/r-lib/rig" >&2
+    exit 1
+fi
+
+Rscript -e 'if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")'
+Rscript -e 'renv::restore()'
+
+echo "R environment ready."
+echo "Setup complete! Run 'make check' to verify."

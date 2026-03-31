@@ -1,0 +1,25 @@
+# targets pipeline — Reproducibility tenet
+# Run with: targets::tar_make()
+# Visualize: targets::tar_visnetwork()
+# Only re-runs targets whose dependencies changed
+
+library(targets)
+library(tarchetypes)
+
+tar_option_set(packages = c("tidyverse", "arrow"))
+
+tar_plan(
+  # ———————————————————————————————————
+  #           Load Data
+  # ———————————————————————————————————
+  tar_target(raw_data, read_parquet(file.path("data", "raw.parquet"))),
+
+  # ———————————————————————————————————
+  #          Transform
+  # ———————————————————————————————————
+  tar_target(clean_data, {
+    raw_data %>%
+      filter(!is.na(id)) %>%
+      identity()
+  })
+)

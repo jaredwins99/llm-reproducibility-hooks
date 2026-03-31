@@ -1,0 +1,18 @@
+FROM rocker/r-ver:4.4.0
+
+WORKDIR /app
+
+# Install renv
+RUN R -e 'install.packages("renv", repos = "https://cloud.r-project.org")'
+
+# Restore environment
+COPY renv.lock .
+COPY renv/activate.R renv/
+COPY .Rprofile .
+RUN R -e 'renv::restore()'
+
+# Copy source
+COPY R/ R/
+COPY scripts/ scripts/
+
+CMD ["Rscript", "scripts/01_main.R"]
