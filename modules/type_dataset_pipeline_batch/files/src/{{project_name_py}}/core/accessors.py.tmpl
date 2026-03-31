@@ -1,0 +1,26 @@
+"""Custom pandas accessors for {{project_name}}.
+
+Register accessors for operations that don't exist natively in pandas,
+so you never have to break out of pipeline mode.
+"""
+import logging
+
+import pandas as pd
+
+logger = logging.getLogger(__name__)
+
+
+@pd.api.extensions.register_dataframe_accessor('px')
+class PxAccessor:
+    def __init__(self, df):
+        self._df = df
+
+    def log(self, msg=''):
+        """Log shape and return df."""
+        logger.info(f'{msg}: {self._df.shape[0]} rows x {self._df.shape[1]} cols')
+        return self._df
+
+    def val(self, condition, msg='Validation failed'):
+        """Assert a condition holds, then return df."""
+        assert condition(self._df), msg
+        return self._df

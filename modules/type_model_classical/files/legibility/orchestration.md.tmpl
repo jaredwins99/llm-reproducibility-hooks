@@ -1,0 +1,52 @@
+# Pipeline Orchestration — {{project_name}}
+
+## Three tiers
+
+### Tier 1: Makefile (always available)
+Run scripts in order. No dependency tracking. Good for simple pipelines.
+```bash
+make pipeline
+```
+
+### Tier 2: DVC pipelines (Python) / targets (R)
+Track file dependencies. Skip unchanged steps. Reproducible.
+```bash
+# Python
+dvc repro
+
+# R
+Rscript -e 'targets::tar_make()'
+```
+
+DVC pipelines are defined in `dvc.yaml`. Each stage declares its command, dependencies, and outputs. DVC only re-runs stages whose inputs changed.
+
+targets is defined in `_targets.R`. Each target is a cached R object. targets tracks code changes and only re-runs affected targets.
+
+### Tier 3: Prefect (production)
+When you outgrow DVC/targets — scheduling, retries, monitoring, distributed execution.
+
+```python
+from prefect import flow, task
+
+@task
+def extract():
+    ...
+
+@task
+def transform(data):
+    ...
+
+@flow
+def pipeline():
+    data = extract()
+    result = transform(data)
+    return result
+```
+
+Migrate to Prefect when:
+- Pipeline needs a schedule (daily, hourly)
+- Multiple pipelines need coordination
+- You need retries, alerts, and a monitoring dashboard
+- Pipeline runs across multiple machines
+
+Install: `uv add prefect`

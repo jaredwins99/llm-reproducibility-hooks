@@ -1,0 +1,30 @@
+# DVC Pipeline — Reproducibility tenet
+# Run with: dvc repro
+# Only re-runs stages whose dependencies changed
+
+stages:
+  extract:
+    cmd: python scripts/01_extract.py
+    deps:
+      - scripts/01_extract.py
+      - src/{{project_name_py}}/
+    outs:
+      - data/extracted.parquet
+
+  transform:
+    cmd: python scripts/02_transform.py
+    deps:
+      - scripts/02_transform.py
+      - src/{{project_name_py}}/
+      - data/extracted.parquet
+    outs:
+      - data/transformed.parquet
+
+  load:
+    cmd: python scripts/03_load.py
+    deps:
+      - scripts/03_load.py
+      - src/{{project_name_py}}/
+      - data/transformed.parquet
+    outs:
+      - data/final.parquet

@@ -1,0 +1,23 @@
+"""Pipeline utilities for {{project_name}}.
+
+Small helpers that make pandas pipelines cleaner.
+These are tools — they live in src/, not in scripts/.
+"""
+
+
+def log_step(msg: str):
+    """Log DataFrame shape after a pipeline step.
+
+    Usage:
+        result = (
+            df
+            .dropna()
+            .pipe(log_step('After dropna'))
+            .assign(x=1)
+            .pipe(log_step('After assign'))
+        )
+    """
+    def _log(df):
+        print(f'{msg}: {df.shape[0]} rows x {df.shape[1]} cols')
+        return df
+    return _log

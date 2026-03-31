@@ -1,0 +1,19 @@
+# Release workflow
+# TODO: Configure package build and publish steps
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and publish
+        run: |
+          # TODO: Add build and publish commands
+          echo "Building and publishing..."

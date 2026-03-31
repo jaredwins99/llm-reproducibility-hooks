@@ -1,0 +1,13 @@
+"""Common imports for {{project_name}} scripts.
+
+Usage in scripts:
+    from {{project_name_py}}.preamble import *
+"""
+import logging
+from pathlib import Path
+
+import pandas as pd
+
+import {{project_name_py}}.core.accessors  # noqa: F401 — registers px accessor
+
+logger = logging.getLogger(__name__)
