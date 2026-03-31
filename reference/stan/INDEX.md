@@ -1,6 +1,7 @@
 # Stan Reference Index
 
 Version: Stan 2.38 (scraped 2026-03-31)
+Total: 172 files, ~1.6MB
 
 ## Class 1 — Official Reference (always search first)
 
@@ -8,33 +9,36 @@ Version: Stan 2.38 (scraped 2026-03-31)
 |---|---|---|
 | `users-guide/` | Stan User's Guide — models, techniques, examples | 38 |
 | `reference-manual/` | Stan Reference Manual — language spec, inference algorithms | 23 |
-| `functions-reference/` | Stan Functions Reference — all built-in functions, distributions, math | 12+ |
-| `cmdstan-guide/` | CmdStan Guide — command-line interface | TBD |
-| `cmdstanr/` | CmdStanR — R interface API, vignettes | 8 |
-| `cmdstanpy/` | CmdStanPy — Python interface API, vignettes | 8 |
+| `functions-reference/` | Stan Functions Reference — all built-in functions, distributions, math | 32 |
+| `cmdstan-guide/` | CmdStan Guide — command-line interface, all flags and options | 22 |
+| `cmdstanr/` | CmdStanR — R interface API, vignettes, posterior draws | 8 |
+| `cmdstanpy/` | CmdStanPy — Python interface API, sampling, optimization, VI | 8 |
 
 ## Class 2 — Case Studies & Supporting Packages (search when Class 1 doesn't answer)
 
 | Directory | What | Files |
 |---|---|---|
-| `case-studies/` | Official case studies — worked examples with full code | TBD |
-| `math-library/` | Stan Math Library — autodiff, C++ backend | TBD |
-| `compiler/` | stanc3 compiler — internals, optimization | TBD |
-| `bayesplot/` | bayesplot — visualization for MCMC diagnostics | TBD |
-| `loo/` | loo — LOO cross-validation, model comparison | TBD |
-| `posterior/` | posterior — working with posterior draws | TBD |
+| `case-studies/` | Official case studies — divergences, mixtures, GPs, ODEs, spatial, hierarchical | 16 |
+| `bayesplot/` | bayesplot — MCMC visualization, diagnostics plots, PPCs | 4 |
+| `loo/` | loo — PSIS-LOO cross-validation, model comparison, stacking | 7 |
+| `posterior/` | posterior — draw formats, summaries, diagnostics functions | 2 |
+| `math-library/` | Stan Math Library — autodiff, C++ backend, dependencies | 1 |
+| `compiler/` | stanc3 compiler — compilation phases, AST, MIR, code modules | 1 |
 
 ## Class 3 — Community Knowledge (search last, verify against Class 1)
 
 | Directory | What | Files |
 |---|---|---|
-| `forum/` | Stan Discourse — common issues, tips, troubleshooting | 8 |
+| `forum/` | Stan Discourse — divergent transitions primer, priors, reparameterization, warnings | 8 |
 
-## Search Priority
+## Search
 
-The search script (`search.sh`) returns results in this order:
-1. Class 1 directories first (official docs)
-2. Class 2 directories second (case studies, packages)
-3. Class 3 directories last (forum)
+```bash
+bash reference/stan/search.sh "query"              # all classes, priority order
+bash reference/stan/search.sh --class 1 "query"    # official docs only
+bash reference/stan/search.sh --class 2 "query"    # case studies only
+bash reference/stan/search.sh --class 3 "query"    # forum only
+bash reference/stan/search.sh --from-file model.stan  # auto-extract concepts
+```
 
-When Class 3 material contradicts Class 1, Class 1 wins.
+When Class 3 contradicts Class 1, Class 1 wins.
