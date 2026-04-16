@@ -22,7 +22,7 @@
       {
         "type": "command",
         "matcher": "Edit|Write",
-        "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE '\\.stan\"'; then echo 'STAN FILE DETECTED — run bash reference/stan/search.sh --from-file on this file BEFORE editing. Search the reference for the modeling approach. NEVER write Stan from memory.'; fi"
+        "command": "FILE_PATH=$(echo \"$CLAUDE_TOOL_INPUT\" | grep -oE '\"file_path\"\\s*:\\s*\"[^\"]+\\.stan\"' | grep -oE '[^\"]+\\.stan' | head -1); if [ -n \"$FILE_PATH\" ] && [ -f \"$FILE_PATH\" ]; then echo '=== Stan reference search (auto-fired on .stan edit) ==='; bash reference/stan/search.sh --from-file \"$FILE_PATH\" 2>/dev/null | head -80; fi"
       }
     ],
     "PostToolUse": [
@@ -30,12 +30,6 @@
         "type": "command",
         "matcher": "Edit",
         "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE '\\.(py|R|r)\"'; then make format 2>/dev/null || true; fi"
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "type": "command",
-        "command": "echo '--- Reminder: Follow CLAUDE.md conventions. Code speaks for itself. No what-comments. Em-dash separators. Functions in src/, pipelines in scripts/. Log every data step. ---'"
       }
     ]
   }

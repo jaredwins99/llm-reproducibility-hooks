@@ -1,5 +1,13 @@
 # Next Steps
 
+## Current Focus: Stan Proof of Concept
+
+**The long-term goal of this project remains: a one-click interactive setup (`init.sh`) that scaffolds opinionated, reproducible scientific projects.** That goal is now on the backburner.
+
+For the near term, all effort goes into the **Stan reference-forcing proof of concept**: measuring whether forcing Claude to consult reference materials measurably improves code quality, and building the tooling around that. The A/B test methodology, eval harness, and failure-mode analysis (see three workstreams in `FELLOWSHIP_PITCH.md` and below) are the priority.
+
+Once the Stan case is solid, we return to the wider template and generalize the reference-forcing pattern to other domains (pandas, numpy, etc.).
+
 ## Three Directions
 
 ### Direction 1: Test Stan Reference Forcing
