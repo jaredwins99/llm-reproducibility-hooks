@@ -89,6 +89,10 @@ def _load_stan_data() -> dict:
 
 
 _STAN_DATA = _load_stan_data()
+# Stan doesn't allow non-data variables as vector sizes at top level of
+# generated quantities, so we pre-compute the flat test-observation count
+# as a data field instead of having Claude derive it.
+_STAN_DATA["N_test_obs"] = int(_STAN_DATA["N"] * _STAN_DATA["T_test"])
 _DATA_JSON = json.dumps(_STAN_DATA)
 
 
@@ -97,16 +101,17 @@ _ELPD_CLAUSE = """
 PREDICTIVE HOLDOUT: data.json contains a TRAINING set (y_train, pop_train of shape N x T_train) and a TEST set (y_test, pop_test of shape N x T_test) covering the next T_test months for the same N countries. Your Stan model MUST:
 
 1. Fit using ONLY the training data — the likelihood should use y_train, not y_test.
-2. In the `generated quantities` block, compute a flat log-likelihood vector over ALL test observations (country i, test-month t), in row-major order (country outer, month inner):
+2. The data block already includes `int N_test_obs` (= N * T_test, precomputed). In the `generated quantities` block, compute a flat log-likelihood vector over ALL test observations (country i, test-month t), in row-major order (country outer, month inner):
 
-     int N_test_obs = N * T_test;
      vector[N_test_obs] log_lik_test;
-     int k = 1;
-     for (i in 1:N)
-       for (t in 1:T_test) {
-         log_lik_test[k] = <log density of y_test[i, t] given current parameters, pop_test[i, t], and the appropriate temporal/spatial index>;
-         k += 1;
-       }
+     {
+       int k = 1;
+       for (i in 1:N)
+         for (t in 1:T_test) {
+           log_lik_test[k] = <log density of y_test[i, t] given current parameters, pop_test[i, t], and the appropriate temporal/spatial index>;
+           k += 1;
+         }
+     }
 
 Your model will be scored by the held-out ELPD: sum over test observations of log mean posterior predictive density. Higher ELPD = better prediction.
 
