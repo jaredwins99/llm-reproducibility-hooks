@@ -2,6 +2,7 @@
 description: Experimental integrity rules for the eval harness — these protect the A/B test from confounds
 paths:
   - "eval/**/*"
+  - "lexis/**/*"
   - "ongoing_issues.md"
   - "FELLOWSHIP_PITCH.md"
 ---
