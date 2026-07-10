@@ -12,9 +12,9 @@ The lexis is a BOUNDED repertoire. Translation rules:
 - The demand's neutrality must survive: if the original doesn't argue a side, neither may your rendering.
 
 Produce the translated prompt with this structure:
-1. An opening that establishes the voice: 2-3 example utterances adapted from the lexis spec (topic-neutral) so the reader is primed in the register.
+1. An opening that establishes the voice: 3-5 example utterances adapted from the lexis spec (topic-neutral) so the reader is primed in the register. The reader will NEVER be told the rules of this register — your examples are the ONLY thing teaching them how to talk. Make them carry the register fully: its rhythm, its plainness or its elaboration, its silences.
 2. The demand itself, rendered strictly within the lexis.
-3. An instruction, phrased inside the lexis, telling the reader to answer in this same way of talking — using only this kind of language, not switching into fancier or more technical words than this register has.
+3. At most a brief in-register nudge to answer in the same way of talking (e.g., "talk plain like this"). Do NOT list rules, do NOT name forbidden words, do NOT describe the register — stating the bounds would step outside the lexis. The reader follows suit from your examples, nothing else.
 4. This exact answer instruction, appended VERBATIM as the final line (do not translate or alter it):
 {answer_instruction}
 
