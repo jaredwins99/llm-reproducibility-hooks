@@ -7,7 +7,6 @@ from dataclasses import dataclass, field, asdict
 from typing import Any
 
 STAGES = ("A", "B", "C", "D", "E")
-DEFAULT_ARMS = ("lexis", "control")
 
 
 @dataclass

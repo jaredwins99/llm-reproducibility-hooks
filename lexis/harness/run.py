@@ -1,11 +1,16 @@
 """CLI entrypoint for the lexis pipeline.
 
-Runs N trials of the 5-agent chain, each with the configured arms, appending
+Runs trials of the 5-agent chain, each with the configured arms, appending
 one JSONL row per (trial, arm) to lexis/results/<run_id>.jsonl.
+
+Topics come from the human-vetted bank by default (lexis/topics/approved.jsonl,
+built via gen_topics.py + manual review). Pass --live-topics to let stage A
+generate topics on the fly instead (unvetted).
 
 Usage:
     python -m lexis.harness.run --trials 10 --run-id pilot1
-    python -m lexis.harness.run --trials 2 --claude-bin /tmp/fake-lexis-claude.sh --run-id smoke
+    python -m lexis.harness.run --trials 2 --live-topics \\
+        --claude-bin /tmp/fake-lexis-claude.sh --run-id smoke
 """
 from __future__ import annotations
 
@@ -16,18 +21,27 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from lexis.harness.pipeline import run_trial
+from lexis.harness.pipeline import DEFAULT_ARMS, run_trial
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RESULTS_DIR = REPO_ROOT / "lexis" / "results"
+APPROVED_TOPICS = REPO_ROOT / "lexis" / "topics" / "approved.jsonl"
 
-# Rotating diversity hints so stage A doesn't converge on the same few topics.
+# Rotating diversity hints. SEED_HINTS steer stage A when --live-topics is on;
+# ROLE_HINTS steer stage B (always live, independent of topic).
 SEED_HINTS = [
     "food and diet", "land use and wildlife", "technology in daily life",
     "work and labor", "education and child-rearing", "medicine and the body",
     "money and trade", "transport and cities", "art and entertainment",
     "law and punishment", "sport and competition", "religion and ritual",
     "science funding", "privacy and surveillance", "energy and climate",
+]
+ROLE_HINTS = [
+    "outdoor and land-based trades", "maritime occupations", "medical professions",
+    "military and veterans", "religious communities", "artistic scenes",
+    "skilled manual trades", "rural agricultural communities", "finance and trading floors",
+    "aviation", "long-haul transport", "competitive sport subcultures",
+    "academic disciplines", "gaming and online communities", "law enforcement",
 ]
 
 
@@ -42,19 +56,39 @@ def _git_sha() -> str:
         return "unknown"
 
 
+def _load_topic_bank(path: Path) -> list[dict]:
+    if not path.exists():
+        print(f"ERROR: vetted topic bank not found at {path}.\n"
+              f"Generate candidates with `python -m lexis.harness.gen_topics --n 30`,\n"
+              f"review them, and copy approved lines to {path}.\n"
+              f"Or pass --live-topics to skip vetting (not recommended).", file=sys.stderr)
+        sys.exit(1)
+    topics = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+    if not topics:
+        print(f"ERROR: topic bank at {path} is empty.", file=sys.stderr)
+        sys.exit(1)
+    return topics
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Lexis pipeline runner")
     parser.add_argument("--trials", type=int, required=True)
-    parser.add_argument("--arms", nargs="+", default=["lexis", "control"])
+    parser.add_argument("--arms", nargs="+", default=list(DEFAULT_ARMS))
+    parser.add_argument("--live-topics", action="store_true",
+                        help="let stage A generate topics live instead of using the vetted bank")
+    parser.add_argument("--topics", default=str(APPROVED_TOPICS),
+                        help="path to the vetted topic bank (jsonl)")
     parser.add_argument("--claude-bin", default="claude")
     parser.add_argument("--work-dir", default="/home/godli/eval-work")
     parser.add_argument("--run-id", default=None)
-    parser.add_argument("--model-a", default="opus")
-    parser.add_argument("--model-b", default="opus")
-    parser.add_argument("--model-c", default="opus")
-    parser.add_argument("--model-d", default="opus")
+    parser.add_argument("--model-a", default="sonnet")
+    parser.add_argument("--model-b", default="sonnet")
+    parser.add_argument("--model-c", default="sonnet")
+    parser.add_argument("--model-d", default="sonnet")
     parser.add_argument("--model-e", default="opus")
     args = parser.parse_args(argv)
+
+    topic_bank = None if args.live_topics else _load_topic_bank(Path(args.topics))
 
     run_id = args.run_id or datetime.now().strftime("%Y%m%d-%H%M%S")
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -63,17 +97,23 @@ def main(argv: list[str] | None = None) -> int:
     stage_models = {"A": args.model_a, "B": args.model_b, "C": args.model_c,
                     "D": args.model_d, "E": args.model_e}
 
-    print(f"run_id={run_id} trials={args.trials} arms={args.arms} results={results_path}",
-          file=sys.stderr)
+    print(f"run_id={run_id} trials={args.trials} arms={args.arms} "
+          f"topics={'live' if topic_bank is None else f'bank({len(topic_bank)})'} "
+          f"results={results_path}", file=sys.stderr)
 
     with open(results_path, "a", buffering=1) as f:
         for n in range(args.trials):
             seed_hint = SEED_HINTS[n % len(SEED_HINTS)]
-            print(f"[{n + 1}/{args.trials}] seed_hint={seed_hint!r}", file=sys.stderr)
+            role_hint = ROLE_HINTS[n % len(ROLE_HINTS)]
+            preset = topic_bank[n % len(topic_bank)] if topic_bank else None
+            label = preset["topic"] if preset else f"live:{seed_hint}"
+            print(f"[{n + 1}/{args.trials}] topic={label!r} role_hint={role_hint!r}",
+                  file=sys.stderr)
             rows = run_trial(
-                trial_n=n, run_id=run_id, seed_hint=seed_hint,
+                trial_n=n, run_id=run_id, seed_hint=seed_hint, role_hint=role_hint,
                 arms=tuple(args.arms), claude_bin=args.claude_bin,
                 work_dir=args.work_dir, stage_models=stage_models, git_sha=git_sha,
+                preset_topic=preset,
             )
             for row in rows:
                 f.write(json.dumps(row) + "\n")

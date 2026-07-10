@@ -4,3 +4,4 @@ FELLOWSHIP_PITCH.md
 __pycache__/
 *.pyc
 lexis/results/
+lexis/topics/candidates.jsonl

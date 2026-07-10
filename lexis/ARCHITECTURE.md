@@ -39,10 +39,21 @@ Stages A–D run ONCE per trial; E runs once per arm:
 | arm | E's prompt |
 |---|---|
 | `lexis` | D's translated, lexis-coded prompt |
+| `neutral_translation` | D's rewording of the demand into a bland institutional register (same lossy translation process, no lexis) — separates "any thorough rewording shifts answers" from "the lexis does" |
 | `control` | A's plain demand + answer-format instruction |
 
-The trial-level measurement is the (lexis, control) answer pair. Aggregate
-measurement: P(answer flips | lexis) and directional shift by role-topic pair.
+The trial-level measurement is the (lexis, neutral_translation, control) answer
+triple. Aggregate: P(answer flips | lexis) vs P(flips | neutral rewording), and
+directional shift by role-topic pair.
+
+## Vetted topic bank
+
+Topics are human-vetted before use (contentiousness, neutrality, answerability):
+
+1. `python -m lexis.harness.gen_topics --n 30` → stage-A candidates to
+   `lexis/topics/candidates.jsonl`
+2. Human review → approved lines copied to `lexis/topics/approved.jsonl`
+3. `run.py` draws from the approved bank by default (`--live-topics` opts out)
 
 ## Answer forcing
 
@@ -75,13 +86,14 @@ lexis/
 └── results/           # <run_id>.jsonl + stage transcripts (gitignored)
 ```
 
-## Open design questions (deep-dive Q&A)
+## Resolved design decisions (deep-dive Q&A, 2026-04)
 
-1. Should B see A's topic? (Current default: yes — role picked with topic
-   awareness, per the hunter×veganism example. Alternative: independent B,
-   cleaner causally, less pointed pairings.)
-2. Add a third arm `neutral_translation` (D translates into a bland neutral
-   register) to separate "translation degradation" from "lexis effect"?
-3. Answer formats beyond binary (numeric scale, multiple choice)?
-4. Models per stage — all opus, or cheaper models for A–D?
-5. Trial count + topic/role diversity strategy for the pilot.
+1. **B never sees A's topic** — independent role choice, steered by a rotating
+   `role_hint` for diversity. Cleaner causal reading; inert pairings accepted.
+2. **Three arms** including `neutral_translation` (see Arms above).
+3. **Answer format**: binary YES/NO for the pilot (parser already supports any
+   closed answer set).
+4. **Models**: sonnet for stages A–D (generation), opus for E (the measured
+   respondent). Per-stage `--model-x` flags exist for later variation, e.g.
+   re-running the same A–D artifacts with E ∈ {opus, sonnet, haiku}.
+5. **Pilot**: 10 trials from the vetted topic bank.

@@ -19,8 +19,10 @@ from lexis.harness.spec import StageOutput, extract_answer, extract_json
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PROMPTS_DIR = REPO_ROOT / "lexis" / "prompts"
 
-DEFAULT_STAGE_MODELS = {"A": "opus", "B": "opus", "C": "opus", "D": "opus", "E": "opus"}
+# Sonnet for generation stages (A-D), opus for the measured respondent (E).
+DEFAULT_STAGE_MODELS = {"A": "sonnet", "B": "sonnet", "C": "sonnet", "D": "sonnet", "E": "opus"}
 STAGE_TIMEOUT_S = 300
+DEFAULT_ARMS = ("lexis", "neutral_translation", "control")
 
 
 def _fill(template: str, **kwargs: str) -> str:
@@ -87,13 +89,19 @@ def run_trial(
     trial_n: int,
     run_id: str,
     seed_hint: str,
-    arms: tuple[str, ...] = ("lexis", "control"),
+    role_hint: str = "any community with a rich register",
+    arms: tuple[str, ...] = DEFAULT_ARMS,
     claude_bin: str = "claude",
     work_dir: Path | str = "/home/godli/eval-work",
     stage_models: dict[str, str] | None = None,
     git_sha: str = "unknown",
+    preset_topic: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Run one full trial. Returns one result row per arm.
+
+    preset_topic: a vetted stage-A output (topic/demand/answer_instruction/
+    allowed_answers). When given, stage A is skipped and the preset is used —
+    this is how the human-vetted topic bank feeds the pipeline.
 
     A failed upstream stage aborts the trial: rows are emitted for each arm
     with status='pipeline_failed' and the failing stage recorded.
@@ -107,22 +115,31 @@ def run_trial(
 
     def fail_rows(failed_stage: str) -> list[dict[str, Any]]:
         return [
-            _row(run_id, trial_id, trial_n, seed_hint, git_sha, models, arm, stages,
+            _row(run_id, trial_id, trial_n, seed_hint, role_hint, git_sha, models, arm, stages,
                  status="pipeline_failed", failed_stage=failed_stage,
                  answer=None, e_output=None)
             for arm in arms
         ]
 
-    # --- Stage A: topic + demand ---
-    a = run_stage("A", _fill(_load_template("stage_a_topic.md"), seed_hint=seed_hint),
-                  models["A"], claude_bin, trial_dir)
-    stages["A"] = a
+    # --- Stage A: topic + demand (skipped when a vetted preset is supplied) ---
     required_a = {"topic", "demand", "answer_instruction", "allowed_answers"}
+    if preset_topic is not None:
+        if not required_a <= set(preset_topic):
+            raise ValueError(f"preset_topic missing keys: {required_a - set(preset_topic)}")
+        a = StageOutput(stage="A", prompt="[preset topic — human-vetted bank]",
+                        raw=json.dumps(preset_topic), parsed=dict(preset_topic),
+                        wall_s=0.0, exit_code=0, status="completed")
+        (trial_dir / "stage_A.prompt.txt").write_text(a.prompt)
+        (trial_dir / "stage_A.raw.txt").write_text(a.raw)
+    else:
+        a = run_stage("A", _fill(_load_template("stage_a_topic.md"), seed_hint=seed_hint),
+                      models["A"], claude_bin, trial_dir)
+    stages["A"] = a
     if a.parsed is None or not required_a <= set(a.parsed):
         return fail_rows("A")
 
-    # --- Stage B: role ---
-    b = run_stage("B", _fill(_load_template("stage_b_role.md"), topic=a.parsed["topic"]),
+    # --- Stage B: role (independent — never sees the topic) ---
+    b = run_stage("B", _fill(_load_template("stage_b_role.md"), role_hint=role_hint),
                   models["B"], claude_bin, trial_dir)
     stages["B"] = b
     if b.parsed is None or not {"role", "register_notes"} <= set(b.parsed):
@@ -147,6 +164,18 @@ def run_trial(
     if d.parsed is None or "translated_prompt" not in d.parsed:
         return fail_rows("D")
 
+    # --- Stage D_neutral: same lossy translation process, bland register ---
+    # (Control for "any thorough rewording shifts answers" vs "the lexis does.")
+    d_neutral = None
+    if "neutral_translation" in arms:
+        d_neutral = run_stage("D_neutral", _fill(_load_template("stage_d_neutral.md"),
+                                                 demand=a.parsed["demand"],
+                                                 answer_instruction=a.parsed["answer_instruction"]),
+                              models["D"], claude_bin, trial_dir)
+        stages["D_neutral"] = d_neutral
+        if d_neutral.parsed is None or "translated_prompt" not in d_neutral.parsed:
+            return fail_rows("D_neutral")
+
     # --- Stage E: one invocation per arm ---
     allowed = [str(x) for x in a.parsed["allowed_answers"]]
     e_prompts = {
@@ -155,20 +184,22 @@ def run_trial(
                          demand=a.parsed["demand"],
                          answer_instruction=a.parsed["answer_instruction"]),
     }
+    if d_neutral is not None:
+        e_prompts["neutral_translation"] = d_neutral.parsed["translated_prompt"]
 
     rows = []
     for arm in arms:
         e = run_stage(f"E_{arm}", e_prompts[arm], models["E"], claude_bin, trial_dir,
                       parse_json=False)
         answer = extract_answer(e.raw, allowed) if e.status == "completed" else None
-        rows.append(_row(run_id, trial_id, trial_n, seed_hint, git_sha, models, arm,
+        rows.append(_row(run_id, trial_id, trial_n, seed_hint, role_hint, git_sha, models, arm,
                          stages, status=e.status, failed_stage=None,
                          answer=answer, e_output=e))
     return rows
 
 
 def _row(
-    run_id: str, trial_id: str, trial_n: int, seed_hint: str, git_sha: str,
+    run_id: str, trial_id: str, trial_n: int, seed_hint: str, role_hint: str, git_sha: str,
     models: dict[str, str], arm: str, stages: dict[str, StageOutput],
     status: str, failed_stage: str | None,
     answer: str | None, e_output: StageOutput | None,
@@ -184,6 +215,7 @@ def _row(
         "timestamp": datetime.now().isoformat(timespec="seconds"),
         "git_sha": git_sha,
         "seed_hint": seed_hint,
+        "role_hint": role_hint,
         "arm": arm,
         "status": status,
         "failed_stage": failed_stage,
