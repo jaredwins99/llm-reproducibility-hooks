@@ -96,12 +96,15 @@ def run_trial(
     stage_models: dict[str, str] | None = None,
     git_sha: str = "unknown",
     preset_topic: dict[str, Any] | None = None,
+    preset_role: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Run one full trial. Returns one result row per arm.
 
     preset_topic: a vetted stage-A output (topic/demand/answer_instruction/
     allowed_answers). When given, stage A is skipped and the preset is used —
     this is how the human-vetted topic bank feeds the pipeline.
+    preset_role: a vetted stage-B output (role/register_notes). When given,
+    stage B is skipped — the human-vetted role bank.
 
     A failed upstream stage aborts the trial: rows are emitted for each arm
     with status='pipeline_failed' and the failing stage recorded.
@@ -139,10 +142,20 @@ def run_trial(
         return fail_rows("A")
 
     # --- Stage B: role (independent — never sees the topic) ---
-    b = run_stage("B", _fill(_load_template("stage_b_role.md"), role_hint=role_hint),
-                  models["B"], claude_bin, trial_dir)
+    required_b = {"role", "register_notes"}
+    if preset_role is not None:
+        if not required_b <= set(preset_role):
+            raise ValueError(f"preset_role missing keys: {required_b - set(preset_role)}")
+        b = StageOutput(stage="B", prompt="[preset role — human-vetted bank]",
+                        raw=json.dumps(preset_role), parsed=dict(preset_role),
+                        wall_s=0.0, exit_code=0, status="completed")
+        (trial_dir / "stage_B.prompt.txt").write_text(b.prompt)
+        (trial_dir / "stage_B.raw.txt").write_text(b.raw)
+    else:
+        b = run_stage("B", _fill(_load_template("stage_b_role.md"), role_hint=role_hint),
+                      models["B"], claude_bin, trial_dir)
     stages["B"] = b
-    if b.parsed is None or not {"role", "register_notes"} <= set(b.parsed):
+    if b.parsed is None or not required_b <= set(b.parsed):
         return fail_rows("B")
 
     # --- Stage C: lexis (role only; never the topic) ---
