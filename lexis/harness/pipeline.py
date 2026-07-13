@@ -50,13 +50,21 @@ def run_stage(
     timeout_s: int = STAGE_TIMEOUT_S,
     parse_json: bool = True,
 ) -> StageOutput:
-    """Invoke one agent; save transcript; parse output."""
+    """Invoke one agent; save transcript; parse output.
+
+    Uses claude's --output-format json envelope so the EXACT model versions
+    (envelope key `modelUsage`) and cost are recorded per call — the model
+    audit trail. If stdout is not an envelope (fakes, older CLIs), it is
+    treated as the raw response text.
+    """
     t0 = time.monotonic()
     raw, exit_code, status = "", None, "completed"
+    model_usage, cost_usd = None, None
     try:
         env = dict(os.environ, LEXIS_STAGE=stage)  # harmless for real claude; lets fakes key off stage
         proc = subprocess.run(
-            [claude_bin, "-p", prompt, "--model", model, "--dangerously-skip-permissions"],
+            [claude_bin, "-p", prompt, "--model", model,
+             "--output-format", "json", "--dangerously-skip-permissions"],
             cwd=str(trial_dir),
             capture_output=True,
             text=True,
@@ -66,6 +74,16 @@ def run_stage(
         )
         raw = proc.stdout
         exit_code = proc.returncode
+        try:
+            envelope = json.loads(raw)
+            if isinstance(envelope, dict) and envelope.get("type") == "result":
+                raw = envelope.get("result") or ""
+                model_usage = envelope.get("modelUsage")
+                cost_usd = envelope.get("total_cost_usd")
+                if envelope.get("is_error"):
+                    status = "crashed"
+        except json.JSONDecodeError:
+            pass  # not an envelope — raw stdout is the response text
     except subprocess.TimeoutExpired as e:
         status = "timeout"
         raw = e.stdout or ""
@@ -82,6 +100,7 @@ def run_stage(
     return StageOutput(
         stage=stage, prompt=prompt, raw=raw, parsed=parsed,
         wall_s=wall, exit_code=exit_code, status=status,
+        model_usage=model_usage, cost_usd=cost_usd,
     )
 
 
@@ -238,6 +257,7 @@ def _row(
         "role": (b.parsed or {}).get("role") if b else None,
         "answer": answer,
         "e_wall_s": e_output.wall_s if e_output else None,
+        "e_brief": e_output.brief() if e_output else None,
         "stage_briefs": [s.brief() for s in stages.values()],
         "stage_models": models,
     }

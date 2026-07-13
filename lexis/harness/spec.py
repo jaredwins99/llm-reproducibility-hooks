@@ -20,6 +20,8 @@ class StageOutput:
     wall_s: float
     exit_code: int | None
     status: str  # completed | timeout | crashed
+    model_usage: dict[str, Any] | None = None  # exact model IDs -> token/cost, from claude's JSON envelope
+    cost_usd: float | None = None
 
     def brief(self) -> dict[str, Any]:
         """Row-friendly summary (drops the long prompt/raw texts)."""
@@ -29,6 +31,8 @@ class StageOutput:
             "exit_code": self.exit_code,
             "status": self.status,
             "parsed_ok": self.parsed is not None,
+            "model_versions": sorted(self.model_usage) if self.model_usage else None,
+            "cost_usd": self.cost_usd,
         }
 
 
