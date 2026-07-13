@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 lexis/results/
 lexis/topics/candidates.jsonl
+lexis/v2/results/

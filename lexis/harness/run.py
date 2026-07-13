@@ -24,9 +24,7 @@ from pathlib import Path
 from lexis.harness.pipeline import DEFAULT_ARMS, run_trial
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-RESULTS_DIR = REPO_ROOT / "lexis" / "results"
-APPROVED_TOPICS = REPO_ROOT / "lexis" / "topics" / "approved.jsonl"
-APPROVED_ROLES = REPO_ROOT / "lexis" / "roles" / "approved.jsonl"
+DEFAULT_CONFIG_DIR = REPO_ROOT / "lexis" / "v2"
 
 # Rotating diversity hints. SEED_HINTS steer stage A when --live-topics is on;
 # ROLE_HINTS steer stage B (always live, independent of topic).
@@ -77,10 +75,15 @@ def main(argv: list[str] | None = None) -> int:
                         help="let stage A generate topics live instead of using the vetted bank")
     parser.add_argument("--live-roles", action="store_true",
                         help="let stage B pick roles live instead of using the vetted bank")
-    parser.add_argument("--topics", default=str(APPROVED_TOPICS),
-                        help="path to the vetted topic bank (jsonl)")
-    parser.add_argument("--roles", default=str(APPROVED_ROLES),
-                        help="path to the vetted role bank (jsonl)")
+    parser.add_argument("--config-dir", default=str(DEFAULT_CONFIG_DIR),
+                        help="version dir containing prompts/, topics/, roles/, results/")
+    parser.add_argument("--topics", default=None,
+                        help="topic bank path (default: <config-dir>/topics/approved.jsonl)")
+    parser.add_argument("--roles", default=None,
+                        help="role bank path (default: <config-dir>/roles/approved.jsonl)")
+    parser.add_argument("--drift-gate", action="store_true", default=True,
+                        help="judge-check D renderings against truth conditions, retry on drift")
+    parser.add_argument("--no-drift-gate", dest="drift_gate", action="store_false")
     parser.add_argument("--claude-bin", default="claude")
     parser.add_argument("--work-dir", default="/home/godli/eval-work")
     parser.add_argument("--run-id", default=None)
@@ -91,12 +94,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--model-e", default="opus")
     args = parser.parse_args(argv)
 
+    config_dir = Path(args.config_dir)
+    topics_path = Path(args.topics) if args.topics else config_dir / "topics" / "approved.jsonl"
+    roles_path = Path(args.roles) if args.roles else config_dir / "roles" / "approved.jsonl"
+
     topic_bank = None if args.live_topics else _load_bank(
-        Path(args.topics), "topic",
+        topics_path, "topic",
         "Generate candidates with `python -m lexis.harness.gen_topics --n 30`, review, "
         "copy approved lines there. Or pass --live-topics.")
     role_bank = None if args.live_roles else _load_bank(
-        Path(args.roles), "role",
+        roles_path, "role",
         "See lexis/ROLES.md; approved roles go in that file. Or pass --live-roles.")
 
     # Trial plan: full factorial over available banks; live stages get rotating hints.
@@ -112,8 +119,9 @@ def main(argv: list[str] | None = None) -> int:
         plan = plan[: args.trials]
 
     run_id = args.run_id or datetime.now().strftime("%Y%m%d-%H%M%S")
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    results_path = RESULTS_DIR / f"{run_id}.jsonl"
+    results_dir = config_dir / "results"
+    results_dir.mkdir(parents=True, exist_ok=True)
+    results_path = results_dir / f"{run_id}.jsonl"
     git_sha = _git_sha()
     stage_models = {"A": args.model_a, "B": args.model_b, "C": args.model_c,
                     "D": args.model_d, "E": args.model_e}
@@ -135,6 +143,7 @@ def main(argv: list[str] | None = None) -> int:
                 arms=tuple(args.arms), claude_bin=args.claude_bin,
                 work_dir=args.work_dir, stage_models=stage_models, git_sha=git_sha,
                 preset_topic=preset_topic, preset_role=preset_role,
+                config_dir=config_dir, drift_gate=args.drift_gate,
             )
             for row in rows:
                 f.write(json.dumps(row) + "\n")

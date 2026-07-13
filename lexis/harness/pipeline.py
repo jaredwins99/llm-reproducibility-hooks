@@ -17,12 +17,15 @@ from typing import Any
 from lexis.harness.spec import StageOutput, extract_answer, extract_json
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PROMPTS_DIR = REPO_ROOT / "lexis" / "prompts"
+DEFAULT_CONFIG_DIR = REPO_ROOT / "lexis"  # v1 layout: prompts/ directly under it
 
 # Sonnet for generation stages (A-D), opus for the measured respondent (E).
-DEFAULT_STAGE_MODELS = {"A": "sonnet", "B": "sonnet", "C": "sonnet", "D": "sonnet", "E": "opus"}
+# GATE = drift-check judge (cheap).
+DEFAULT_STAGE_MODELS = {"A": "sonnet", "B": "sonnet", "C": "sonnet", "D": "sonnet",
+                        "E": "opus", "GATE": "haiku"}
 STAGE_TIMEOUT_S = 300
 DEFAULT_ARMS = ("lexis", "neutral_translation", "control")
+DRIFT_MAX_RETRIES = 2  # D regenerations after a failed gate check
 
 
 def _fill(template: str, **kwargs: str) -> str:
@@ -37,8 +40,8 @@ def _fill(template: str, **kwargs: str) -> str:
     return out
 
 
-def _load_template(name: str) -> str:
-    return (PROMPTS_DIR / name).read_text()
+def _load_template(name: str, config_dir: Path | None = None) -> str:
+    return ((config_dir or DEFAULT_CONFIG_DIR) / "prompts" / name).read_text()
 
 
 def run_stage(
@@ -116,6 +119,8 @@ def run_trial(
     git_sha: str = "unknown",
     preset_topic: dict[str, Any] | None = None,
     preset_role: dict[str, Any] | None = None,
+    config_dir: Path | None = None,
+    drift_gate: bool = False,
 ) -> list[dict[str, Any]]:
     """Run one full trial. Returns one result row per arm.
 
@@ -154,7 +159,7 @@ def run_trial(
         (trial_dir / "stage_A.prompt.txt").write_text(a.prompt)
         (trial_dir / "stage_A.raw.txt").write_text(a.raw)
     else:
-        a = run_stage("A", _fill(_load_template("stage_a_topic.md"), seed_hint=seed_hint),
+        a = run_stage("A", _fill(_load_template("stage_a_topic.md", config_dir), seed_hint=seed_hint),
                       models["A"], claude_bin, trial_dir)
     stages["A"] = a
     if a.parsed is None or not required_a <= set(a.parsed):
@@ -171,14 +176,14 @@ def run_trial(
         (trial_dir / "stage_B.prompt.txt").write_text(b.prompt)
         (trial_dir / "stage_B.raw.txt").write_text(b.raw)
     else:
-        b = run_stage("B", _fill(_load_template("stage_b_role.md"), role_hint=role_hint),
+        b = run_stage("B", _fill(_load_template("stage_b_role.md", config_dir), role_hint=role_hint),
                       models["B"], claude_bin, trial_dir)
     stages["B"] = b
     if b.parsed is None or not required_b <= set(b.parsed):
         return fail_rows("B")
 
     # --- Stage C: lexis (role only; never the topic) ---
-    c = run_stage("C", _fill(_load_template("stage_c_lexis.md"),
+    c = run_stage("C", _fill(_load_template("stage_c_lexis.md", config_dir),
                              role=b.parsed["role"],
                              register_notes=b.parsed["register_notes"]),
                   models["C"], claude_bin, trial_dir)
@@ -186,48 +191,125 @@ def run_trial(
     if c.parsed is None or "examples" not in c.parsed:
         return fail_rows("C")
 
-    # --- Stage D: translate demand into the lexis ---
-    d = run_stage("D", _fill(_load_template("stage_d_translate.md"),
-                             demand=a.parsed["demand"],
-                             lexis_json=json.dumps(c.parsed, indent=2),
-                             answer_instruction=a.parsed["answer_instruction"]),
-                  models["D"], claude_bin, trial_dir)
-    stages["D"] = d
-    if d.parsed is None or "translated_prompt" not in d.parsed:
-        return fail_rows("D")
+    # --- Stage D: translate demand into the lexis (drift-gated when enabled) ---
+    d_prompt = _fill(_load_template("stage_d_translate.md", config_dir),
+                     demand=a.parsed["demand"],
+                     truth_conditions=a.parsed.get("truth_conditions", "(not specified)"),
+                     lexis_json=json.dumps(c.parsed, indent=2),
+                     answer_instruction=a.parsed["answer_instruction"])
+    d = _gated_translation("D", d_prompt, a.parsed, models, claude_bin, trial_dir,
+                           stages, config_dir, drift_gate)
+    if d is None or d.parsed is None or "translated_prompt" not in d.parsed:
+        gate_failed = d is not None and d.status == "drift_gate_failed"
+        return fail_rows("D_gate" if gate_failed else "D")
 
     # --- Stage D_neutral: same lossy translation process, bland register ---
     # (Control for "any thorough rewording shifts answers" vs "the lexis does.")
     d_neutral = None
     if "neutral_translation" in arms:
-        d_neutral = run_stage("D_neutral", _fill(_load_template("stage_d_neutral.md"),
-                                                 demand=a.parsed["demand"],
-                                                 answer_instruction=a.parsed["answer_instruction"]),
-                              models["D"], claude_bin, trial_dir)
-        stages["D_neutral"] = d_neutral
-        if d_neutral.parsed is None or "translated_prompt" not in d_neutral.parsed:
-            return fail_rows("D_neutral")
+        dn_prompt = _fill(_load_template("stage_d_neutral.md", config_dir),
+                          demand=a.parsed["demand"],
+                          truth_conditions=a.parsed.get("truth_conditions", "(not specified)"),
+                          answer_instruction=a.parsed["answer_instruction"])
+        d_neutral = _gated_translation("D_neutral", dn_prompt, a.parsed, models, claude_bin,
+                                       trial_dir, stages, config_dir, drift_gate)
+        if d_neutral is None or d_neutral.parsed is None or "translated_prompt" not in d_neutral.parsed:
+            gate_failed = d_neutral is not None and d_neutral.status == "drift_gate_failed"
+            return fail_rows("D_neutral_gate" if gate_failed else "D_neutral")
 
     # --- Stage E: one invocation per arm ---
     allowed = [str(x) for x in a.parsed["allowed_answers"]]
     e_prompts = {
         "lexis": d.parsed["translated_prompt"],
-        "control": _fill(_load_template("stage_e_control.md"),
+        "control": _fill(_load_template("stage_e_control.md", config_dir),
                          demand=a.parsed["demand"],
                          answer_instruction=a.parsed["answer_instruction"]),
     }
     if d_neutral is not None:
         e_prompts["neutral_translation"] = d_neutral.parsed["translated_prompt"]
 
+    # Replay bundle: everything needed to re-run E on identical prompts later
+    # (exact replication / added replicates without regenerating A-D).
+    bundle = {
+        "trial_id": trial_id,
+        "trial_n": trial_n,
+        "run_id": run_id,
+        "git_sha": git_sha,
+        "topic": a.parsed.get("topic"),
+        "role": b.parsed.get("role"),
+        "allowed_answers": allowed,
+        "e_prompts": e_prompts,
+        "stage_models": models,
+    }
+    (trial_dir / "bundle.json").write_text(json.dumps(bundle, indent=2))
+
     rows = []
     for arm in arms:
         e = run_stage(f"E_{arm}", e_prompts[arm], models["E"], claude_bin, trial_dir,
                       parse_json=False)
+        if e.status == "crashed":  # infra failure — one retry; unparseable answers are data
+            e = run_stage(f"E_{arm}_retry", e_prompts[arm], models["E"], claude_bin, trial_dir,
+                          parse_json=False)
         answer = extract_answer(e.raw, allowed) if e.status == "completed" else None
         rows.append(_row(run_id, trial_id, trial_n, seed_hint, role_hint, git_sha, models, arm,
                          stages, status=e.status, failed_stage=None,
                          answer=answer, e_output=e))
     return rows
+
+
+def _gated_translation(
+    stage_name: str,
+    prompt: str,
+    a_parsed: dict[str, Any],
+    models: dict[str, str],
+    claude_bin: str,
+    trial_dir: Path,
+    stages: dict[str, StageOutput],
+    config_dir: Path | None,
+    drift_gate: bool,
+) -> StageOutput | None:
+    """Run a translation stage, optionally drift-gated with retries.
+
+    Gate flow: translate -> judge checks semantic equivalence against the
+    demand's truth conditions -> on failure, retry the translation with the
+    judge's violations appended (up to DRIFT_MAX_RETRIES). Returns the last
+    translation StageOutput; returns it even if the final gate failed (caller
+    marks the trial drift-failed via the recorded gate stage), or None if the
+    translation itself never parsed.
+    """
+    attempt_prompt = prompt
+    out: StageOutput | None = None
+    for attempt in range(1 + (DRIFT_MAX_RETRIES if drift_gate else 0)):
+        label = stage_name if attempt == 0 else f"{stage_name}_retry{attempt}"
+        out = run_stage(label, attempt_prompt, models["D"], claude_bin, trial_dir)
+        stages[label] = out
+        if out.parsed is None or "translated_prompt" not in out.parsed:
+            return out  # unparseable translation — caller fails the trial on the stage
+
+        if not drift_gate:
+            return out
+
+        gate_prompt = _fill(_load_template("gate_drift.md", config_dir),
+                            demand=a_parsed["demand"],
+                            truth_conditions=a_parsed.get("truth_conditions", "(not specified)"),
+                            rendering=out.parsed["translated_prompt"])
+        gate = run_stage(f"GATE_{label}", gate_prompt, models["GATE"], claude_bin, trial_dir)
+        stages[f"GATE_{label}"] = gate
+        verdict = gate.parsed or {}
+        if verdict.get("equivalent") is True:
+            return out
+        # Retry with objections appended
+        violations = json.dumps(verdict.get("violations", ["gate unparseable"]))
+        attempt_prompt = (prompt +
+                          "\n\nA semantic checker rejected your previous rendering for these "
+                          "violations — fix them while keeping everything else:\n" + violations)
+
+    # Retries exhausted with gate still failing: signal via parsed=None sentinel
+    # while keeping the transcript. Caller marks the trial as gate-failed.
+    return StageOutput(stage=f"{stage_name}_gate_failed", prompt=out.prompt, raw=out.raw,
+                       parsed=None, wall_s=out.wall_s, exit_code=out.exit_code,
+                       status="drift_gate_failed", model_usage=out.model_usage,
+                       cost_usd=out.cost_usd)
 
 
 def _row(
