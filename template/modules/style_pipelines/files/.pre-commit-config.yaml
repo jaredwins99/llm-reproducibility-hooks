@@ -1,0 +1,9 @@
+  - repo: local
+    hooks:
+      - id: pipelines-gate
+        name: Pandas pipeline style gate
+        entry: bash correctness/hooks/pipelines-gate.sh
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [pre-commit]

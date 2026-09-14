@@ -1,0 +1,3 @@
+.PHONY: check-pipelines
+check-pipelines:  ## Gate: pandas pipeline style
+	python correctness/checks/check_pipelines.py src scripts

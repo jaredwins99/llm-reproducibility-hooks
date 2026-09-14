@@ -8,6 +8,14 @@
 
 set -euo pipefail
 
+# Display target: the terminal when there is one, stderr otherwise, so the
+# wizard's primitives also work non-interactively and in CI.
+if { : >/dev/tty; } 2>/dev/null; then
+    FOREST_OUT=/dev/tty
+else
+    FOREST_OUT=/dev/stderr
+fi
+
 # Colors
 readonly FOREST_BOLD='\033[1m'
 readonly FOREST_DIM='\033[2m'
@@ -20,19 +28,19 @@ readonly FOREST_RESET='\033[0m'
 # Print a styled header for a tree section
 forest_header() {
     local title="$1"
-    echo "" >/dev/tty
-    echo -e "${FOREST_BOLD}${FOREST_CYAN}══════════════════════════════════════${FOREST_RESET}" >/dev/tty
-    echo -e "${FOREST_BOLD}${FOREST_CYAN}  $title${FOREST_RESET}" >/dev/tty
-    echo -e "${FOREST_BOLD}${FOREST_CYAN}══════════════════════════════════════${FOREST_RESET}" >/dev/tty
-    echo "" >/dev/tty
+    echo "" >"$FOREST_OUT"
+    echo -e "${FOREST_BOLD}${FOREST_CYAN}══════════════════════════════════════${FOREST_RESET}" >"$FOREST_OUT"
+    echo -e "${FOREST_BOLD}${FOREST_CYAN}  $title${FOREST_RESET}" >"$FOREST_OUT"
+    echo -e "${FOREST_BOLD}${FOREST_CYAN}══════════════════════════════════════${FOREST_RESET}" >"$FOREST_OUT"
+    echo "" >"$FOREST_OUT"
 }
 
 # Print a sub-header
 forest_subheader() {
     local title="$1"
-    echo "" >/dev/tty
-    echo -e "${FOREST_BOLD}  $title${FOREST_RESET}" >/dev/tty
-    echo -e "${FOREST_DIM}  ──────────────────────────────────${FOREST_RESET}" >/dev/tty
+    echo "" >"$FOREST_OUT"
+    echo -e "${FOREST_BOLD}  $title${FOREST_RESET}" >"$FOREST_OUT"
+    echo -e "${FOREST_DIM}  ──────────────────────────────────${FOREST_RESET}" >"$FOREST_OUT"
 }
 
 # Single-select prompt: returns the selected value on stdout
@@ -43,30 +51,35 @@ forest_select_one() {
     shift
     local -a options=("$@")
 
-    echo -e "  ${FOREST_BOLD}$prompt${FOREST_RESET}" >/dev/tty
-    echo "" >/dev/tty
+    if [[ -n "${FOREST_NON_INTERACTIVE:-}" ]]; then
+        echo "${options[0]%%:*}"
+        return 0
+    fi
+
+    echo -e "  ${FOREST_BOLD}$prompt${FOREST_RESET}" >"$FOREST_OUT"
+    echo "" >"$FOREST_OUT"
 
     local i=1
     for opt in "${options[@]}"; do
         local label="${opt#*:}"
-        echo -e "    ${FOREST_CYAN}${i})${FOREST_RESET} $label" >/dev/tty
+        echo -e "    ${FOREST_CYAN}${i})${FOREST_RESET} $label" >"$FOREST_OUT"
         ((i++))
     done
-    echo "" >/dev/tty
+    echo "" >"$FOREST_OUT"
 
     while true; do
-        echo -ne "  ${FOREST_YELLOW}Select [1-${#options[@]}]:${FOREST_RESET} " >/dev/tty
-        read -r choice </dev/tty
+        echo -ne "  ${FOREST_YELLOW}Select [1-${#options[@]}]:${FOREST_RESET} " >"$FOREST_OUT"
+        read -r choice <"$FOREST_OUT"
 
         if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#options[@]} )); then
             local selected="${options[$((choice-1))]}"
             local value="${selected%%:*}"
             local label="${selected#*:}"
-            echo -e "  ${FOREST_GREEN}✓${FOREST_RESET} ${FOREST_DIM}$label${FOREST_RESET}" >/dev/tty
+            echo -e "  ${FOREST_GREEN}✓${FOREST_RESET} ${FOREST_DIM}$label${FOREST_RESET}" >"$FOREST_OUT"
             echo "$value"  # This is the only stdout — captured by caller
             return 0
         fi
-        echo -e "  ${FOREST_RED}Invalid choice. Please enter a number between 1 and ${#options[@]}.${FOREST_RESET}" >/dev/tty
+        echo -e "  ${FOREST_RED}Invalid choice. Please enter a number between 1 and ${#options[@]}.${FOREST_RESET}" >"$FOREST_OUT"
     done
 }
 
@@ -75,23 +88,29 @@ forest_select_one() {
 forest_select_many() {
     local prompt="$1"
     shift
+
+    if [[ -n "${FOREST_NON_INTERACTIVE:-}" ]]; then
+        local -a _opts=("$@")
+        echo "${_opts[0]%%:*}"
+        return 0
+    fi
     local -a options=("$@")
 
-    echo -e "  ${FOREST_BOLD}$prompt${FOREST_RESET}" >/dev/tty
-    echo -e "  ${FOREST_DIM}(enter numbers separated by spaces, e.g. \"1 3 4\")${FOREST_RESET}" >/dev/tty
-    echo "" >/dev/tty
+    echo -e "  ${FOREST_BOLD}$prompt${FOREST_RESET}" >"$FOREST_OUT"
+    echo -e "  ${FOREST_DIM}(enter numbers separated by spaces, e.g. \"1 3 4\")${FOREST_RESET}" >"$FOREST_OUT"
+    echo "" >"$FOREST_OUT"
 
     local i=1
     for opt in "${options[@]}"; do
         local label="${opt#*:}"
-        echo -e "    ${FOREST_CYAN}${i})${FOREST_RESET} $label" >/dev/tty
+        echo -e "    ${FOREST_CYAN}${i})${FOREST_RESET} $label" >"$FOREST_OUT"
         ((i++))
     done
-    echo "" >/dev/tty
+    echo "" >"$FOREST_OUT"
 
     while true; do
-        echo -ne "  ${FOREST_YELLOW}Select [1-${#options[@]}]:${FOREST_RESET} " >/dev/tty
-        read -r choices </dev/tty
+        echo -ne "  ${FOREST_YELLOW}Select [1-${#options[@]}]:${FOREST_RESET} " >"$FOREST_OUT"
+        read -r choices <"$FOREST_OUT"
 
         local -a selected_values=()
         local -a selected_labels=()
@@ -103,7 +122,7 @@ forest_select_many() {
                 selected_values+=("${selected%%:*}")
                 selected_labels+=("${selected#*:}")
             else
-                echo -e "  ${FOREST_RED}Invalid choice: $choice. Please enter numbers between 1 and ${#options[@]}.${FOREST_RESET}" >/dev/tty
+                echo -e "  ${FOREST_RED}Invalid choice: $choice. Please enter numbers between 1 and ${#options[@]}.${FOREST_RESET}" >"$FOREST_OUT"
                 valid=false
                 break
             fi
@@ -111,13 +130,13 @@ forest_select_many() {
 
         if [[ "$valid" == true ]] && (( ${#selected_values[@]} > 0 )); then
             for label in "${selected_labels[@]}"; do
-                echo -e "  ${FOREST_GREEN}✓${FOREST_RESET} ${FOREST_DIM}$label${FOREST_RESET}" >/dev/tty
+                echo -e "  ${FOREST_GREEN}✓${FOREST_RESET} ${FOREST_DIM}$label${FOREST_RESET}" >"$FOREST_OUT"
             done
             local IFS=','
             echo "${selected_values[*]}"  # stdout — captured by caller
             return 0
         elif [[ "$valid" == true ]]; then
-            echo -e "  ${FOREST_RED}Please select at least one option.${FOREST_RESET}" >/dev/tty
+            echo -e "  ${FOREST_RED}Please select at least one option.${FOREST_RESET}" >"$FOREST_OUT"
         fi
     done
 }
@@ -129,11 +148,16 @@ forest_confirm() {
     local prompt="$1"
     local default="${2:-y}"
 
+    if [[ -n "${FOREST_NON_INTERACTIVE:-}" ]]; then
+        [[ "$default" == "y" ]]
+        return
+    fi
+
     local hint="Y/n"
     [[ "$default" == "n" ]] && hint="y/N"
 
-    echo -ne "  ${FOREST_BOLD}$prompt${FOREST_RESET} ${FOREST_DIM}[$hint]:${FOREST_RESET} " >/dev/tty
-    read -r answer </dev/tty
+    echo -ne "  ${FOREST_BOLD}$prompt${FOREST_RESET} ${FOREST_DIM}[$hint]:${FOREST_RESET} " >"$FOREST_OUT"
+    read -r answer <"$FOREST_OUT"
 
     answer="${answer:-$default}"
     answer="${answer,,}"  # lowercase
@@ -147,28 +171,33 @@ forest_input() {
     local prompt="$1"
     local default="${2:-}"
 
-    if [[ -n "$default" ]]; then
-        echo -ne "  ${FOREST_BOLD}$prompt${FOREST_RESET} ${FOREST_DIM}[$default]:${FOREST_RESET} " >/dev/tty
-    else
-        echo -ne "  ${FOREST_BOLD}$prompt:${FOREST_RESET} " >/dev/tty
+    if [[ -n "${FOREST_NON_INTERACTIVE:-}" ]]; then
+        echo "$default"
+        return 0
     fi
 
-    read -r answer </dev/tty
+    if [[ -n "$default" ]]; then
+        echo -ne "  ${FOREST_BOLD}$prompt${FOREST_RESET} ${FOREST_DIM}[$default]:${FOREST_RESET} " >"$FOREST_OUT"
+    else
+        echo -ne "  ${FOREST_BOLD}$prompt:${FOREST_RESET} " >"$FOREST_OUT"
+    fi
+
+    read -r answer <"$FOREST_OUT"
     answer="${answer:-$default}"
     echo "$answer"  # stdout — captured by caller
 }
 
 # Print summary of selections (display only — goes to tty)
 forest_summary() {
-    echo "" >/dev/tty
-    echo -e "${FOREST_BOLD}${FOREST_GREEN}══════════════════════════════════════${FOREST_RESET}" >/dev/tty
-    echo -e "${FOREST_BOLD}${FOREST_GREEN}  Summary of Selections${FOREST_RESET}" >/dev/tty
-    echo -e "${FOREST_BOLD}${FOREST_GREEN}══════════════════════════════════════${FOREST_RESET}" >/dev/tty
-    echo "" >/dev/tty
+    echo "" >"$FOREST_OUT"
+    echo -e "${FOREST_BOLD}${FOREST_GREEN}══════════════════════════════════════${FOREST_RESET}" >"$FOREST_OUT"
+    echo -e "${FOREST_BOLD}${FOREST_GREEN}  Summary of Selections${FOREST_RESET}" >"$FOREST_OUT"
+    echo -e "${FOREST_BOLD}${FOREST_GREEN}══════════════════════════════════════${FOREST_RESET}" >"$FOREST_OUT"
+    echo "" >"$FOREST_OUT"
 
     for key in $(echo "${!SELECTIONS[@]}" | tr ' ' '\n' | sort); do
         local value="${SELECTIONS[$key]}"
-        echo -e "  ${FOREST_CYAN}$key${FOREST_RESET}: $value" >/dev/tty
+        echo -e "  ${FOREST_CYAN}$key${FOREST_RESET}: $value" >"$FOREST_OUT"
     done
-    echo "" >/dev/tty
+    echo "" >"$FOREST_OUT"
 }

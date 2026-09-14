@@ -4,8 +4,8 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODULES_DIR="$(cd "$SCRIPT_DIR/../modules" && pwd)"
+RESOLVER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MODULES_DIR="$(cd "$RESOLVER_DIR/../modules" && pwd)"
 
 # Evaluate a single activation condition against SELECTIONS
 # Conditions:

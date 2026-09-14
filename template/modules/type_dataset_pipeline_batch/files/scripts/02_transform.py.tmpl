@@ -1,11 +1,36 @@
-"""Transform: Clean and transform extracted data."""
+"""Transform: clean and reshape, one chain, each step a named function.
 
-# TODO: Implement transformation logic
+Every step takes a frame and returns a frame, so the chain reads as the list
+of things that happen. Nothing is reassigned; nothing mutates in place.
+"""
+
+import pandas as pd
+
+from {{project_name_py}}.core.accessors import *  # noqa: F401,F403
+from {{project_name_py}}.core.report import report
 
 
-def main():
-    print("Running transformation step...")
+def drop_blank_columns(frame):
+    """Remove columns that are empty in every row."""
+    blank = [c for c in frame.columns if frame[c].astype(str).str.strip().eq('').all()]
+    return frame.drop(columns=blank)
 
 
-if __name__ == "__main__":
-    main()
+def normalise_whitespace(frame):
+    """Strip leading and trailing whitespace from every text column."""
+    text = frame.select_dtypes(include='object').columns
+    return frame.assign(**{c: frame[c].astype(str).str.strip() for c in text})
+
+
+def main(source, destination):
+    """Read, chain, report, write."""
+    frame = (pd.read_parquet(source)
+             .pipe(drop_blank_columns)
+             .px.log('after dropping blank columns')
+             .pipe(normalise_whitespace))
+    report('transform', frame)
+    frame.to_parquet(destination, compression='zstd', index=False)
+
+
+if __name__ == '__main__':
+    main('data/01_extracted/example.parquet', 'data/02_transformed/example.parquet')

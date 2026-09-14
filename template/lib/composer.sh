@@ -4,9 +4,9 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMPOSER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "$SCRIPT_DIR/templating.sh"
+source "$COMPOSER_DIR/templating.sh"
 
 # Merge strategies for accumulator files
 # These files can be appended to by multiple modules
@@ -64,6 +64,37 @@ merge_makefile() {
     } >> "$file"
 }
 
+# Merge JSON by deep-merging objects and concatenating arrays
+# Usage: merge_json <file> <content>
+merge_json() {
+    local file="$1"
+    local content="$2"
+
+    if [[ ! -f "$file" ]]; then
+        echo "$content" > "$file"
+        return 0
+    fi
+
+    local script='
+import json, sys
+def deep_merge(base, incoming):
+    if isinstance(base, dict) and isinstance(incoming, dict):
+        for key, value in incoming.items():
+            base[key] = deep_merge(base[key], value) if key in base else value
+        return base
+    if isinstance(base, list) and isinstance(incoming, list):
+        return base + incoming
+    return incoming
+with open(sys.argv[1]) as handle:
+    base = json.load(handle)
+incoming = json.loads(sys.stdin.read())
+print(json.dumps(deep_merge(base, incoming), indent=2))
+'
+    local merged
+    merged=$(printf '%s' "$content" | python3 -c "$script" "$file")
+    echo "$merged" > "$file"
+}
+
 # Determine merge strategy for a given file path
 # Returns: "append_gitignore", "append_makefile", "append_yaml", "append_generic", "first_wins"
 get_merge_strategy() {
@@ -80,6 +111,9 @@ get_merge_strategy() {
             ;;
         .pre-commit-config.yaml|ci.yml)
             echo "append_yaml"
+            ;;
+        settings.json)
+            echo "merge_json"
             ;;
         CLAUDE.md|README.md)
             echo "append_generic"
@@ -152,6 +186,9 @@ compose_module() {
                     ;;
                 append_generic)
                     merge_append "$output_path" "$module_name" "$content"
+                    ;;
+                merge_json)
+                    merge_json "$output_path" "$content"
                     ;;
                 first_wins)
                     # File already exists, skip with notice

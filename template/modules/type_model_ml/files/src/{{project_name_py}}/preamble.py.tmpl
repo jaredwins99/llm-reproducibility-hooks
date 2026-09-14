@@ -1,5 +1,8 @@
 """Common imports for {{project_name}} scripts.
 
+Importing core.accessors registers the .px accessor, which is why it
+appears unused here.
+
 Usage in scripts:
     from {{project_name_py}}.preamble import *
 """
@@ -8,6 +11,6 @@ from pathlib import Path
 
 import pandas as pd
 
-import {{project_name_py}}.core.accessors  # noqa: F401 — registers px accessor
+import {{project_name_py}}.core.accessors  # noqa: F401
 
 logger = logging.getLogger(__name__)

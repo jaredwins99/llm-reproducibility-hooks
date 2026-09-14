@@ -1,0 +1,21 @@
+
+## Pandas pipeline style — enforced, not suggested
+
+Full rules and rationale: `legibility/style-pipelines.md`.
+Gate: `python correctness/checks/check_pipelines.py src scripts`
+
+Two rules are checked on write, on commit, and in CI; one is advice:
+
+1. **Chain transformations with `.pipe()`.** Never reassign a frame from
+   itself, never `df["col"] = ...`, never `inplace=True`. If a step resists
+   piping it is doing two things — split it. One failed attempt is not
+   evidence that it cannot be piped.
+2. **Prefer no inline comments (advice, not gated).** Reasoning goes in the review page, data facts go
+   in `notes/findings/` with the query that establishes them. A comment
+   asserting something false is worse than silence.
+3. **Every step reports what it changed** — rows in, rows out, delta — and
+   nothing writes an artifact whose shape was not printed.
+
+When the gate blocks you, fix the code. Do not add `# noqa`, do not move the
+file out of `src/` or `scripts/`, and do not weaken the check. If a rule is
+genuinely wrong for a case, say so and leave it blocked.

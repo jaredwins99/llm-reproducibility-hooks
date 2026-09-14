@@ -60,6 +60,7 @@ parse_args() {
                 ;;
             --non-interactive)
                 NON_INTERACTIVE=true
+                export FOREST_NON_INTERACTIVE=1
                 shift
                 ;;
             -h|--help)
@@ -127,7 +128,8 @@ ask_metadata() {
 
     local name
     while true; do
-        name=$(forest_input "Project name (lowercase, hyphens ok)" "")
+        name=$(forest_input "Project name (lowercase, hyphens ok)" \
+            "$(basename "$OUTPUT_DIR" | tr '[:upper:] ' '[:lower:]-')")
         if validate_project_name "$name"; then
             break
         fi

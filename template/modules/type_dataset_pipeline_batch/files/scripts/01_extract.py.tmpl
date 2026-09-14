@@ -1,11 +1,26 @@
-"""Extract: Pull raw data from sources."""
+"""Extract: pull raw data from sources into the first staged directory.
 
-# TODO: Implement extraction logic
+Replace read_source with the real reader. The shape report and the row-count
+assertion are the parts to keep: every stage states what it produced.
+"""
+
+import pandas as pd
+
+from {{project_name_py}}.core.accessors import *  # noqa: F401,F403
+from {{project_name_py}}.core.report import report
 
 
-def main():
-    print("Running extraction step...")
+def read_source(path):
+    """Read one raw export. Swap this for the project's real source."""
+    return pd.read_csv(path, dtype=str, keep_default_na=False)
 
 
-if __name__ == "__main__":
-    main()
+def main(source, destination):
+    """Read, report, write."""
+    frame = read_source(source).px.log('extracted')
+    report('extract', frame)
+    frame.to_parquet(destination, compression='zstd', index=False)
+
+
+if __name__ == '__main__':
+    main('data/raw/example.csv', 'data/01_extracted/example.parquet')

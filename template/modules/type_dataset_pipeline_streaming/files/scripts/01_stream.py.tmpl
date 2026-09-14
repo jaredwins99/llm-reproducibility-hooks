@@ -1,11 +1,22 @@
-"""Stream: Continuously process incoming data."""
+"""Stream: continuously process incoming data.
 
-# TODO: Implement streaming logic
+Replace consume with the real source. The shape report is the part to keep:
+every batch states what it produced, so a silently empty batch is visible.
+"""
+
+from {{project_name_py}}.core.report import report
 
 
-def main():
-    print("Starting streaming pipeline...")
+def consume(source):
+    """Yield batches from the source. Swap this for the real consumer."""
+    raise NotImplementedError(source)
 
 
-if __name__ == "__main__":
-    main()
+def main(source):
+    """Consume batches, reporting each."""
+    for index, batch in enumerate(consume(source)):
+        report(f'batch {index}', batch)
+
+
+if __name__ == '__main__':
+    main('stream://example')

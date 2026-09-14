@@ -1,11 +1,22 @@
-"""Load: Write transformed data to destination."""
+"""Load: write the transformed frame to its destination.
 
-# TODO: Implement load logic
+The validation is deliberate. A load step that silently writes zero rows is
+the failure this stage exists to prevent.
+"""
+
+import pandas as pd
+
+from {{project_name_py}}.core.accessors import *  # noqa: F401,F403
+from {{project_name_py}}.core.report import report
 
 
-def main():
-    print("Running load step...")
+def main(source, destination):
+    """Read, report, validate non-empty, write."""
+    frame = (pd.read_parquet(source)
+             .px.val(lambda f: len(f) > 0, f'{source} produced no rows'))
+    report('load', frame)
+    frame.to_csv(destination, index=False)
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    main('data/02_transformed/example.parquet', 'outputs/example.csv')
