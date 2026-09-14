@@ -53,23 +53,63 @@ class Violation:
         return f"{self.path}:{self.line}: {self.code} {self.message}"
 
 
+SCOPES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)
+
+
+def walk_scope(scope: ast.AST):
+    """Every node in a scope, without entering functions or lambdas defined inside it."""
+    pending = list(ast.iter_child_nodes(scope))
+    while pending:
+        node = pending.pop()
+        yield node
+        if not isinstance(node, SCOPES):
+            pending.extend(ast.iter_child_nodes(node))
+
+
+COLUMN_METHODS = {
+    "isin", "map", "eq", "ne", "lt", "le", "gt", "ge", "str", "dt", "fillna",
+    "astype", "unique", "nunique", "value_counts", "notna", "isna", "between",
+    "cumsum", "shift", "clip", "idxmax", "idxmin",
+}
+
+
 def frame_names(tree: ast.AST) -> set[str]:
-    """Names with positive evidence of being a DataFrame, from usage not naming."""
+    """Names with positive evidence of being a DataFrame, from usage not naming.
+
+    Evidence is a frame method called on the name, or a column taken from it
+    with a string key and used as a Series. Assignments then carry that
+    evidence to the names they define until nothing changes, so neither the
+    order of statements nor the order the tree is walked in can hide a frame.
+
+    Evidence is gathered per scope. A lambda's parameter being a frame says
+    nothing about a variable of the same name in another function.
+    """
     names: set[str] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Attribute) and node.attr in FRAME_METHODS:
-            root = node.value
-            if isinstance(root, ast.Name):
-                names.add(root.id)
-        if isinstance(node, ast.Assign) and len(node.targets) == 1:
-            target = node.targets[0]
-            if not isinstance(target, ast.Name):
+    assignments: list[tuple[str, ast.AST]] = []
+    for node in walk_scope(tree):
+        if (isinstance(node, ast.Attribute) and node.attr in FRAME_METHODS
+                and isinstance(node.value, ast.Name)):
+            names.add(node.value.id)
+        if (isinstance(node, ast.Attribute) and node.attr in COLUMN_METHODS
+                and isinstance(node.value, ast.Subscript)
+                and isinstance(node.value.value, ast.Name)
+                and isinstance(node.value.slice, ast.Constant)
+                and isinstance(node.value.slice.value, str)):
+            names.add(node.value.value.id)
+        if (isinstance(node, ast.Assign) and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)):
+            assignments.append((node.targets[0].id, node.value))
+    changed = True
+    while changed:
+        changed = False
+        for target, value in assignments:
+            if target in names:
                 continue
-            for inner in ast.walk(node.value):
-                if isinstance(inner, ast.Attribute) and inner.attr in FRAME_READERS:
-                    names.add(target.id)
-                if isinstance(inner, ast.Name) and inner.id in names:
-                    names.add(target.id)
+            if any((isinstance(inner, ast.Attribute) and inner.attr in FRAME_READERS)
+                   or (isinstance(inner, ast.Name) and inner.id in names)
+                   for inner in ast.walk(value)):
+                names.add(target)
+                changed = True
     return names
 
 
@@ -95,10 +135,10 @@ def find_inline_comments(path: Path, source: str) -> list[Violation]:
 
 def find_sequential_reassignment(path: Path, tree: ast.AST) -> list[Violation]:
     found = []
-    frames = frame_names(tree)
     for scope in ast.walk(tree):
         if not isinstance(scope, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
+        frames = frame_names(scope)
         counts: dict[str, list[int]] = {}
         for stmt in scope.body:
             if not isinstance(stmt, ast.Assign) or len(stmt.targets) != 1:
@@ -121,18 +161,21 @@ def find_sequential_reassignment(path: Path, tree: ast.AST) -> list[Violation]:
 
 def find_inplace_mutation(path: Path, tree: ast.AST) -> list[Violation]:
     found = []
-    frames = frame_names(tree)
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Assign):
+    for scope in ast.walk(tree):
+        if not isinstance(scope, (ast.Module, *SCOPES)):
             continue
-        for target in node.targets:
-            if not isinstance(target, ast.Subscript):
+        frames = frame_names(scope)
+        for node in walk_scope(scope):
+            if not isinstance(node, ast.Assign):
                 continue
-            root = _attribute_root(target)
-            if root in frames:
-                found.append(Violation(path, node.lineno, "PIPE003",
-                                       f"'{root}[...] = ...' mutates in place; use .assign()"))
-    return found
+            for target in node.targets:
+                if not isinstance(target, ast.Subscript):
+                    continue
+                root = _attribute_root(target)
+                if root in frames:
+                    found.append(Violation(path, node.lineno, "PIPE003",
+                                           f"'{root}[...] = ...' mutates in place; use .assign()"))
+    return sorted(found, key=lambda v: v.line)
 
 
 def find_unreported_writes(path: Path, tree: ast.AST) -> list[Violation]:

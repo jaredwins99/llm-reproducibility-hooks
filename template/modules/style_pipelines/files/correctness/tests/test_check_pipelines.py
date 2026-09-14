@@ -117,6 +117,64 @@ def test_a_real_dict_is_not_flagged(tmp_path):
     assert 'PIPE003' not in report
 
 
+COPIED_SLICE = '''"""A frame known only from its columns, sliced, copied, then mutated."""
+
+
+def screen(windowed, returning):
+    """No reader and no frame method on the name that is mutated."""
+    new_items = windowed[~windowed["item_name"].isin(returning)].copy()
+    new_items["category"] = new_items["item_name"].map({})
+    return new_items
+'''
+
+LATE_EVIDENCE = '''"""The evidence that source is a frame comes after the alias is mutated."""
+
+
+def late(source):
+    """Walk order must not decide whether the alias is a frame."""
+    alias = source
+    alias["flag"] = 1
+    return source.dropna()
+'''
+
+
+SEPARATE_SCOPES = '''"""A lambda parameter is a frame in one function only."""
+
+
+def pick(frame, keep):
+    """f is a frame inside this lambda and nowhere else."""
+    return frame.loc[lambda f: f["item_name"].isin(keep)]
+
+
+def tally(items):
+    """A dict built from a loop variable that happens to share the name."""
+    values = {f: 0 for f in items}
+    values["total"] = len(items)
+    return values
+'''
+
+
+def test_frame_evidence_does_not_leak_between_scopes(tmp_path):
+    """Evidence in one function does not make a same-named dict a frame in another."""
+    code, report = run_checker(write(tmp_path, 'scopes.py', SEPARATE_SCOPES))
+    assert code == 0
+    assert 'PIPE003' not in report
+
+
+def test_frame_known_from_column_access_is_caught(tmp_path):
+    """Taking a column and using it as a Series is evidence of a frame."""
+    code, report = run_checker(write(tmp_path, 'copied.py', COPIED_SLICE))
+    assert code == 1
+    assert 'PIPE003' in report
+
+
+def test_evidence_after_the_mutation_is_still_used(tmp_path):
+    """Frame evidence propagates through assignments regardless of order."""
+    code, report = run_checker(write(tmp_path, 'late.py', LATE_EVIDENCE))
+    assert code == 1
+    assert 'PIPE003' in report
+
+
 def test_tool_directives_are_allowed(tmp_path):
     """noqa and type comments are directives, not commentary."""
     code, _ = run_checker(write(tmp_path, 'directives.py', DIRECTIVES))
