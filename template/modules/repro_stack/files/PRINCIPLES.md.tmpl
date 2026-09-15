@@ -1,0 +1,119 @@
+# Working principles — {{project_name}}
+
+How code, claims and commits are made in this repository. It applies to every
+change, whoever or whatever makes it; editor and assistant configurations
+point here rather than restating it.
+
+Each rule says whether it is **enforced** (a gate blocks the commit, the push
+or the edit) or **advisory** (expected, reviewed, not blocked).
+
+| Rule | Status | Where it is checked |
+|---|---|---|
+| No frame reassigned from itself (PIPE002) | enforced | `make gate`: pre-commit hook, Claude edit hook |
+| No in-place column mutation (PIPE003) | enforced | same |
+| No artifact written without a reported shape (PIPE004) | enforced | same |
+| No inline comments (PIPE001) | advisory | reported by `make gate`, blocks only with `--strict` |
+| Tests pass, Python and R | enforced | `make test`: pre-commit hook |
+| Notes structure and coverage | enforced | `make notes-fast`: pre-commit hook |
+| Finding evidence still reproduces its claim | enforced | `make notes`: pre-push hook |
+| No AI or co-author attribution in commit messages | enforced | commit-msg hook, Claude Bash hook |
+| Commit messages do not refer to a user or agent | enforced (common phrasings) | commit-msg hook |
+| Prefer built-in pandas over custom wrappers | advisory | review |
+| A test file for every module | advisory | review (a project may add a gate) |
+| Config-driven design | advisory | review |
+| Empirical falsification of claims | advisory for code, enforced for findings | review; `make notes` |
+
+## 1. Pandas as short pipes that report their shape
+
+- A transformation is one method chain: `.pipe()`, `.assign()`, `.query()`,
+  `.merge()`, `.rename()`. Never `df = df...`, never `df["col"] = ...`, never
+  `inplace=True`.
+- Keep chains short. A step that resists piping is doing two things; split it
+  into two named functions. One failed attempt is not evidence that it cannot
+  be piped.
+- Every step reports what it changed: rows in, rows out, delta. Nothing
+  writes an artifact (`to_parquet`, `to_csv`, ...) whose shape was not printed.
+- When the gate blocks, fix the code. Do not add `# noqa`, do not move the
+  file out of the checked directories, do not weaken the checker.
+
+## 2. Prefer built-in pandas
+
+Use what pandas already provides (`value_counts`, `pivot_table`, `merge` with
+`indicator=True`, `groupby().agg()` with named aggregations, `pd.cut`,
+`Series.str`, `Series.dt`) before writing a helper. A wrapper earns its place
+only when it is called from more than one module and says something the
+built-in does not. Add a reused helper once, in the package, then call it.
+
+## 3. A test file for every module
+
+Every module `src/<package>/x/y.py` has a test file (`tests/test_x_y.py` or
+the project's equivalent), and every R file under the package has a
+`test-*.R`. New code ships with its test in the same change. A test counts
+only once it has been run and its output seen.
+
+## 4. Notes: decisions, findings, open questions
+
+Notes live in `notes/` as Markdown with front matter. The notes check
+validates them and regenerates `notes/INDEX.md`; never edit the index by hand.
+
+```
+---
+kind: decision | finding | open | reference
+title: One line stating the decision, fact or question
+covers: path/one.py, path/two.R
+claim: exact text the evidence command must print      (finding only)
+evidence: shell command run from the repository root   (finding only)
+---
+Body.
+```
+
+What each kind must contain:
+
+- **decision** (`notes/decisions/`): what was decided, why, and the
+  alternative that was rejected, written as `Rejected: ...`. One decision per
+  file; two decisions may not claim the same covered file.
+- **finding** (`notes/findings/`): a fact about the data. `claim` is a string
+  the `evidence` command prints; the check re-runs the command and fails when
+  the claim no longer appears. A finding without both is rejected.
+- **open** (`notes/open/`): an unresolved question and what it blocks.
+  Deleted when answered, with the answer moved into a decision or finding.
+- **reference**: a pointer to an external source the code depends on.
+
+Every note declares `covers:`. A note that covers nothing cannot be
+invalidated and is rejected. Every source file must be covered by some note.
+No progress notes: "ran stage 2, it worked" belongs in conversation.
+
+## 5. Empirical falsification
+
+A claim is a hypothesis until a command has tried to break it.
+
+- State what output would prove the claim wrong, run the command, and keep
+  the output. "The code looks right" is not evidence.
+- Build in small blocks: write, run, see it pass, then move on.
+- Data facts become findings whose evidence re-runs; results shown in review
+  pages come from executed commands, not transcription.
+
+## 6. Config-driven design
+
+Anything that could reasonably change without the logic changing (paths,
+thresholds, label rules, lists of exposures or outcomes, pipeline steps, the
+CmdStan release) lives in configuration (`config/*.yaml`, `config/*.csv`,
+`project.mk`), not in code. Code reads the config and fails loudly when an
+entry is missing. Changing what runs is a config edit and a re-run.
+
+## 7. Commits
+
+- No `Co-Authored-By`, no "Generated with", no AI attribution of any kind.
+- Never refer to a person in a commit message: not the user, not an agent,
+  not "we" or "I". The message states what the change does.
+- Subject as a direct statement: `Drop sub-$2.00 line items at stage 3`, not
+  `Per request, I updated the cleaning`.
+- Private inputs (`private/`, re-identification maps, credentials) are never
+  committed.
+
+## 8. Reproducibility
+
+`make setup` builds everything from pinned files: `environment.yml` (conda),
+`renv.lock` (R), `CMDSTAN_VERSION` (CmdStan), `.pre-commit-config.yaml`
+(hooks). A new dependency is added by importing it and running `make pin`,
+never by installing it ad hoc and leaving the pins stale. See `SETUP.md`.

@@ -1,0 +1,16 @@
+name: {{project_name}}
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - pip
+  - pandas
+  - pyarrow
+  - pyyaml
+  - pytest
+  - pre-commit
+  - pip:
+      - cmdstanpy
+# Starter only. Once the code imports what it needs, pin exact versions from
+# the working environment with:  make pin-conda

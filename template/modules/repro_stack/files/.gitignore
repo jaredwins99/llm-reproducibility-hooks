@@ -1,0 +1,8 @@
+renv/library/
+renv/staging/
+renv/local/
+renv/cellar/
+renv/python/
+.Rhistory
+.Rproj.user/
+environment.yml.new

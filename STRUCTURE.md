@@ -22,6 +22,8 @@ template/
 
 **Usage**: `./template/init.sh --output-dir ~/projects/new-project`
 
+**Existing project**: `./template/apply.sh --module repro_stack --output-dir ~/projects/existing [--claude-private] [--keep-existing]` installs one module without the wizard. `repro_stack` (also offered by the wizard as "Reproducible stack") adds pinned `environment.yml` and `renv.lock`, CmdStan, a Dockerfile, `repro.mk` + `project.mk` make targets (`make setup && make all`, `make check`), pre-commit hooks, `PRINCIPLES.md`, and Claude rules and hooks.
+
 Part A is mostly complete. It will be revisited after the Stan proof of concept lands.
 
 ## Shared Pool — `reference/`

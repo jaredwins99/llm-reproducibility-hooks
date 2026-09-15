@@ -1,0 +1,60 @@
+# syntax=docker/dockerfile:1
+# Reproducible image: the pinned conda environment, R with renv.lock restored,
+# and CmdStan at the pinned release. Built from dev_template's repro_stack.
+#
+#   docker build -t {{project_name}} .
+#   docker run --rm {{project_name}} make check
+#   docker run --rm -v "$PWD":/work {{project_name}} make all
+#
+# Private inputs are never baked in (.dockerignore); mount the repository to
+# run the pipeline against them.
+
+ARG R_VERSION=4.3.3
+FROM rocker/r-ver:${R_VERSION}
+
+ARG ENV_NAME={{project_name}}
+ARG CMDSTAN_VERSION=2.38.0
+ARG MICROMAMBA_VERSION=2.0.5
+ARG PPM_SNAPSHOT=latest
+
+ENV ENV_PREFIX=/opt/conda/envs/${ENV_NAME} \
+    CMDSTAN_DIR=/opt/cmdstan \
+    CMDSTAN=/opt/cmdstan/cmdstan-${CMDSTAN_VERSION} \
+    RENV_PATHS_LIBRARY=/opt/renv/library \
+    RENV_PATHS_CACHE=/opt/renv/cache \
+    RENV_CONFIG_REPOS_OVERRIDE=https://packagemanager.posit.co/cran/__linux__/jammy/${PPM_SNAPSHOT} \
+    MAMBA_ROOT_PREFIX=/opt/conda \
+    LANG=C.UTF-8
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# System packages come from the base image's fixed Ubuntu release; the
+# reproducibility pins that matter are environment.yml, renv.lock and CmdStan.
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        bzip2 ca-certificates curl git make g++ \
+        libcurl4-openssl-dev libssl-dev libxml2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL "https://micro.mamba.pm/api/micromamba/linux-64/${MICROMAMBA_VERSION}" \
+        | tar -xj -C /usr/local bin/micromamba
+
+WORKDIR /work
+
+COPY environment.yml ./
+RUN micromamba create -y -p "${ENV_PREFIX}" -f environment.yml \
+    && micromamba clean -afy
+ENV PATH=${ENV_PREFIX}/bin:${PATH}
+
+COPY renv.lock .Rprofile ./
+COPY renv/activate.R renv/
+RUN Rscript --no-save --no-restore --no-init-file \
+        -e 'source("renv/activate.R"); renv::restore(prompt = FALSE)'
+
+RUN python -m cmdstanpy.install_cmdstan --version "${CMDSTAN_VERSION}" \
+        --dir "${CMDSTAN_DIR}" --cores "$(nproc)"
+
+COPY . .
+
+CMD ["make", "check"]

@@ -1,0 +1,175 @@
+# repro.mk — reproducible-stack targets from dev_template's repro_stack module.
+#
+# Generic: every project-specific value (environment name, pipeline steps,
+# test commands, site commands) lives in project.mk, which is read first.
+# Update this file by re-applying the module, not by hand:
+#   dev_template/template/apply.sh --module repro_stack --output-dir .
+#
+# First run on a fresh machine:   make setup && make all
+# Day to day:                     make check   (gate + tests + notes)
+
+-include project.mk
+
+SHELL := /bin/bash
+.DEFAULT_GOAL := help
+
+ENV_NAME        ?= {{project_name}}
+ENV_FILE        ?= environment.yml
+CONDA           ?= $(shell command -v mamba 2>/dev/null || command -v conda 2>/dev/null || echo conda)
+CONDA_BASE      ?= $(shell $(CONDA) info --base 2>/dev/null)
+ENV_PREFIX      ?= $(CONDA_BASE)/envs/$(ENV_NAME)
+
+PY               = $$( [ -x "$(ENV_PREFIX)/bin/python" ] && echo "$(ENV_PREFIX)/bin/python" || echo python )
+PRECOMMIT        = $$( [ -x "$(ENV_PREFIX)/bin/pre-commit" ] && echo "$(ENV_PREFIX)/bin/pre-commit" || echo pre-commit )
+RSCRIPT         ?= Rscript --no-save --no-restore
+PYTHONPATH      ?= src
+export PYTHONPATH
+
+R_DIRS          ?= R
+RENV_LOCK       ?= renv.lock
+RENV_SNAPSHOT_EXCLUDE ?=
+export RENV_SNAPSHOT_EXCLUDE
+
+CMDSTAN_VERSION ?=
+CMDSTAN_DIR     ?= $(HOME)/.cmdstan
+ifneq ($(strip $(CMDSTAN_VERSION)),)
+export CMDSTAN  := $(CMDSTAN_DIR)/cmdstan-$(CMDSTAN_VERSION)
+endif
+
+PIPE_GATE       ?= tools/check_pipelines.py
+GATE_DIRS       ?= src scripts
+PY_TESTS        ?= tests
+TEST_PY_CMD     ?= $(PY) -m pytest -q $(PY_TESTS)
+TEST_R_CMD      ?=
+NOTES_CMD       ?=
+NOTES_FAST_CMD  ?= $(NOTES_CMD)
+PIPELINE_PY     ?=
+PIPELINE_R      ?=
+SITE_CMD        ?=
+SERVE_CMD       ?=
+
+IMAGE           ?= $(ENV_NAME)
+PIN_FROM        ?= $(ENV_PREFIX)
+PIN_DIRS        ?= src scripts tests
+PIN_ARGS        ?=
+
+.PHONY: help setup env renv cmdstan hooks all pipeline pipeline-py pipeline-r step \
+        check gate test test-py test-r notes notes-fast site serve \
+        pin pin-conda pin-renv docker-build docker-test docker-lint doctor
+
+help: ## List targets
+	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
+
+# ---------------------------------------------------------------- setup
+
+setup: env renv cmdstan hooks ## Fresh machine: conda env, renv restore, CmdStan, git hooks
+	@echo "setup complete; next: make all"
+
+env: ## Create or update the conda environment from environment.yml
+	@if [ -x "$(ENV_PREFIX)/bin/python" ]; then \
+		echo "==> updating $(ENV_PREFIX)"; \
+		$(CONDA) env update -p "$(ENV_PREFIX)" -f $(ENV_FILE) --prune; \
+	else \
+		echo "==> creating $(ENV_PREFIX)"; \
+		$(CONDA) env create -p "$(ENV_PREFIX)" -f $(ENV_FILE); \
+	fi
+
+renv: ## Restore the R library pinned in renv.lock (skipped when there is none)
+	@if [ ! -f "$(RENV_LOCK)" ]; then echo "==> no $(RENV_LOCK); skipping R"; exit 0; fi; \
+	command -v Rscript >/dev/null || { echo "Rscript not found: install R $$(grep -m1 -oE '"Version": "[0-9.]+"' $(RENV_LOCK))" >&2; exit 1; }; \
+	echo "==> renv::restore()"; \
+	Rscript --no-save --no-restore --no-init-file -e 'source("renv/activate.R"); renv::restore(prompt = FALSE)'
+
+cmdstan: ## Install CmdStan $(CMDSTAN_VERSION) into CMDSTAN_DIR (skipped when unset or present)
+	@if [ -z "$(strip $(CMDSTAN_VERSION))" ]; then echo "==> CMDSTAN_VERSION unset; skipping"; exit 0; fi; \
+	if [ -x "$(CMDSTAN)/bin/stanc" ]; then echo "==> CmdStan $(CMDSTAN_VERSION) present at $(CMDSTAN)"; exit 0; fi; \
+	echo "==> installing CmdStan $(CMDSTAN_VERSION) into $(CMDSTAN_DIR)"; \
+	$(PY) -m cmdstanpy.install_cmdstan --version $(CMDSTAN_VERSION) --dir "$(CMDSTAN_DIR)" --cores "$$(nproc 2>/dev/null || echo 2)"
+
+hooks: ## Install the git hooks declared in .pre-commit-config.yaml
+	@if [ ! -d .git ]; then echo "==> not a git repository; skipping hooks"; exit 0; fi; \
+	$(PRECOMMIT) install --install-hooks
+
+# ---------------------------------------------------------------- pipeline
+
+all: ## Full pipeline: Python stages, R runners, then the site
+	@$(MAKE) --no-print-directory pipeline-py
+	@$(MAKE) --no-print-directory pipeline-r
+	@$(MAKE) --no-print-directory site
+
+pipeline: all ## Alias for all
+
+pipeline-py: ## Python stages in PIPELINE_PY order
+	@set -e; for m in $(PIPELINE_PY); do \
+		echo "==> python -m $$m"; $(PY) -m $$m; \
+	done
+
+pipeline-r: ## R runners in PIPELINE_R order (per-script args: ARGS.<script basename>)
+	@set -e; $(foreach s,$(PIPELINE_R),echo "==> Rscript $(s) $(ARGS.$(basename $(notdir $(s))))"; $(RSCRIPT) $(s) $(ARGS.$(basename $(notdir $(s))));)
+
+step: ## One Python stage: make step M=package.module
+	$(PY) -m $(M)
+
+# ---------------------------------------------------------------- checks
+
+check: gate test notes ## Everything a commit must pass
+
+gate: ## Pipe-style gate (PIPE002-004 block, PIPE001 advisory)
+	@test -f $(PIPE_GATE) || { echo "pipe gate missing at $(PIPE_GATE); re-apply repro_stack" >&2; exit 1; }
+	$(PY) $(PIPE_GATE) $(GATE_DIRS)
+
+test: test-py test-r ## Python and R tests
+
+test-py: ## Python tests
+	$(TEST_PY_CMD)
+
+test-r: ## R tests (skipped when TEST_R_CMD is unset)
+	$(if $(strip $(TEST_R_CMD)),$(TEST_R_CMD),@echo "==> TEST_R_CMD unset; skipping")
+
+notes: ## Notes check, including finding evidence (skipped when NOTES_CMD is unset)
+	$(if $(strip $(NOTES_CMD)),$(NOTES_CMD),@echo "==> NOTES_CMD unset; skipping")
+
+notes-fast: ## Notes check without re-running evidence (used at commit time)
+	$(if $(strip $(NOTES_FAST_CMD)),$(NOTES_FAST_CMD),@echo "==> NOTES_FAST_CMD unset; skipping")
+
+# ---------------------------------------------------------------- site
+
+site: ## Build the review site
+	$(if $(strip $(SITE_CMD)),$(SITE_CMD),@echo "==> SITE_CMD unset; skipping")
+
+serve: ## Serve the review site locally
+	$(SERVE_CMD)
+
+# ---------------------------------------------------------------- pins
+
+pin: pin-conda pin-renv ## Regenerate environment.yml and renv.lock from what the code imports
+
+pin-conda: ## environment.yml from imports in PIN_DIRS, versions from PIN_FROM
+	$(PY) tools/pin_conda_env.py --prefix "$(PIN_FROM)" --name $(ENV_NAME) --dirs $(PIN_DIRS) $(PIN_ARGS) > $(ENV_FILE).new
+	mv $(ENV_FILE).new $(ENV_FILE)
+
+pin-renv: ## renv.lock from packages referenced in R_DIRS
+	$(RSCRIPT) tools/snapshot_renv.R $(R_DIRS)
+
+# ---------------------------------------------------------------- docker
+
+docker-build: ## Build the image (conda env, renv library, CmdStan)
+	docker build -t $(IMAGE) .
+
+docker-test: ## Run make check inside the image
+	docker run --rm $(IMAGE) make check
+
+docker-lint: ## Lint the Dockerfile with hadolint
+	@if command -v hadolint >/dev/null; then hadolint Dockerfile; \
+	else docker run --rm -i hadolint/hadolint < Dockerfile; fi
+
+doctor: ## Show which tools and versions the targets will use
+	@echo "python:   $(PY)"; $(PY) --version
+	@echo "conda:    $(CONDA)  env: $(ENV_PREFIX)"
+	@echo "Rscript:  $$(command -v Rscript || echo missing)"; Rscript --version 2>&1 | head -1 || true
+	@echo "CmdStan:  $${CMDSTAN:-unset}"
+	@echo "hooks:    $$([ -f .git/hooks/pre-commit ] && echo installed || echo 'not installed')"
+
+print-%: ## Print a make variable: make print-GATE_DIRS
+	@echo '$($*)'

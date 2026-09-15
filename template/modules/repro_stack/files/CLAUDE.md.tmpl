@@ -1,0 +1,10 @@
+## Reproducible stack and working principles
+
+The principles are in `PRINCIPLES.md` and load automatically through
+`.claude/rules/working-principles.md`. Commands:
+
+- `make setup` — conda env, renv restore, CmdStan, git hooks (fresh machine)
+- `make all` — full pipeline, then the site
+- `make check` — pipe gate, Python and R tests, notes check
+- `make pin` — regenerate `environment.yml` and `renv.lock` from what the code uses
+- `make help` — everything else

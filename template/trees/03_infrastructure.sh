@@ -5,6 +5,12 @@
 tree_03_walk() {
     forest_header "Infrastructure"
 
+    if forest_confirm "Reproducible stack: pinned conda + renv + CmdStan, Dockerfile, make setup/all/check, git hooks, working principles?" "y"; then
+        SELECTIONS[reproducible_stack]="yes"
+    else
+        SELECTIONS[reproducible_stack]="no"
+    fi
+
     local infra
     infra=$(forest_select_many "Where will this project run?" \
         "local:Local machine only" \

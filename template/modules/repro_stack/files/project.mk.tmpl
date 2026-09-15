@@ -1,0 +1,39 @@
+# project.mk — the project-specific half of the make targets.
+#
+# repro.mk holds the generic targets and reads this file first. Everything a
+# target needs to know about this project is a variable here, so changing the
+# pipeline, the tests or the site is a config edit, not a Makefile edit.
+# Recursive (=) assignments may refer to $(PY) and $(RSCRIPT), which repro.mk
+# resolves to the project's conda environment and renv library.
+
+ENV_NAME        = {{project_name}}
+PYTHONPATH      = src
+
+# CmdStan release shared by cmdstanpy and cmdstanr; leave empty if no Stan.
+CMDSTAN_VERSION = 2.38.0
+
+# Pipe gate from the style_pipelines module and the directories it checks.
+PIPE_GATE       = tools/check_pipelines.py
+GATE_DIRS       = src scripts
+
+# Tests. Leave TEST_R_CMD empty in a Python-only project.
+PY_TESTS        = correctness/tests
+TEST_R_CMD      =
+
+# Notes check: full (re-runs finding evidence) and fast (commit time).
+NOTES_CMD       =
+NOTES_FAST_CMD  =
+
+# Pipeline, in order: Python modules run with python -m, then R scripts.
+# Per-script arguments: ARGS.<basename> = --flag
+PIPELINE_PY     =
+PIPELINE_R      =
+
+# Review site.
+SITE_CMD        =
+SERVE_CMD       =
+
+# make pin-conda: which directories to scan and what to add or leave out.
+PIN_DIRS        = src scripts correctness/tests
+PIN_ARGS        = --local {{project_name_py}} --extra pre-commit=4.3.0 --pip cmdstanpy==1.3.0
+R_DIRS          = R

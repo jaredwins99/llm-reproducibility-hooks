@@ -1,0 +1,47 @@
+  - repo: local
+    hooks:
+      - id: repro-pipe-gate
+        name: pipe gate (PIPE002-004 block)
+        entry: make -s gate
+        language: system
+        pass_filenames: false
+        types_or: [python]
+        stages: [pre-commit]
+      - id: repro-tests-py
+        name: python tests
+        entry: make -s test-py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+      - id: repro-tests-r
+        name: R tests
+        entry: make -s test-r
+        language: system
+        pass_filenames: false
+        files: '\.(R|r|stan)$|^renv\.lock$'
+        stages: [pre-commit]
+      - id: repro-notes-fast
+        name: notes check (structure and coverage)
+        entry: make -s notes-fast
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+      - id: repro-notes-full
+        name: notes check (re-runs finding evidence)
+        entry: make -s notes
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+      - id: repro-commit-attribution
+        name: commit message has no AI or co-author attribution
+        entry: '(?i)^co-authored-by:|generated (with|by) .*(claude|copilot|chatgpt|gpt|ai\b)|claude-session:|noreply@anthropic\.com|🤖'
+        language: pygrep
+        stages: [commit-msg]
+      - id: repro-commit-person
+        name: commit message does not refer to a user or an agent
+        entry: '(?i)\b(per (the )?user|(the )?user (asked|requested|wanted|wants)|as requested|as you asked|I (have )?(updated|changed|added|fixed|made))\b'
+        language: pygrep
+        stages: [commit-msg]

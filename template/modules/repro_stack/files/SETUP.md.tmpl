@@ -1,0 +1,65 @@
+# Setup — {{project_name}}
+
+Everything needed to reproduce the project is pinned in the repository:
+
+| File | Pins |
+|---|---|
+| `environment.yml` | Python and every package the code imports (conda + pip) |
+| `renv.lock`, `renv/activate.R`, `.Rprofile` | every R package the R code uses |
+| `project.mk` (`CMDSTAN_VERSION`) | the CmdStan release used by cmdstanr and cmdstanpy |
+| `.pre-commit-config.yaml` | the git hooks: gate, tests, notes, commit rules |
+| `Dockerfile`, `.dockerignore` | all of the above in one image |
+
+## Fresh machine
+
+Requirements: git, make, conda (Miniforge or Miniconda; mamba is used when
+present), R at the version recorded in `renv.lock`, and a C++ toolchain for
+CmdStan.
+
+```bash
+make setup && make all
+```
+
+`make setup` runs, in order:
+
+1. `make env` — creates the conda environment from `environment.yml`
+   (updates it when it exists). Override the location with `ENV_PREFIX=/path`.
+2. `make renv` — `renv::restore()` from `renv.lock` into `renv/library`.
+3. `make cmdstan` — installs CmdStan `CMDSTAN_VERSION` into `~/.cmdstan`
+   (skipped when already present; override with `CMDSTAN_DIR`).
+4. `make hooks` — installs the pre-commit, pre-push and commit-msg hooks.
+
+## Day to day
+
+```bash
+make check        # gate + Python and R tests + notes check
+make all          # the full pipeline, then the site
+make step M=pkg.module
+make site && make serve
+make help         # every target
+```
+
+The targets use the project environment directly, so nothing needs to be
+activated. R scripts run without `--vanilla` so that `.Rprofile` activates the
+renv library.
+
+## Docker
+
+```bash
+make docker-build
+make docker-test                                  # make check in the image
+docker run --rm -v "$PWD":/work {{project_name}} make all   # pipeline on the mounted repo
+```
+
+Private inputs are excluded from the image by `.dockerignore`; mount the
+repository to use them.
+
+## Changing dependencies
+
+Import the package in code, install it into the environment, then:
+
+```bash
+make pin          # environment.yml from imports, renv.lock from R references
+```
+
+Commit the regenerated pins together with the code that needs them.
