@@ -8,17 +8,17 @@ Run scripts in order. No dependency tracking. Good for simple pipelines.
 make pipeline
 ```
 
-### Tier 2: DVC pipelines (Python) / targets (R)
+### Tier 2: DVC pipelines (optional `tool_dvc` module) / targets (R)
 Track file dependencies. Skip unchanged steps. Reproducible.
 ```bash
-# Python
-dvc repro
+# DVC (chosen at scaffold time, or: template/apply.sh --module tool_dvc)
+make dvc-repro
 
 # R
 Rscript -e 'targets::tar_make()'
 ```
 
-DVC pipelines are defined in `dvc.yaml`. Each stage declares its command, dependencies, and outputs. DVC only re-runs stages whose inputs changed.
+DVC pipelines are defined in `dvc.yaml`. Each stage declares its command, dependencies, and outputs. DVC only re-runs stages whose inputs changed. The Makefile stays the single orchestrator: every stage's `cmd` calls make for one entry of the pipeline order in `project.mk`, and `make dvc-check` fails when the two disagree.
 
 targets is defined in `_targets.R`. Each target is a cached R object. targets tracks code changes and only re-runs affected targets.
 

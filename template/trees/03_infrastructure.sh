@@ -11,6 +11,18 @@ tree_03_walk() {
         SELECTIONS[reproducible_stack]="no"
     fi
 
+    if forest_confirm "MLflow experiment tracking: local tracking store, tracked_run helper, make mlflow-ui?" "n"; then
+        SELECTIONS[mlflow]="yes"
+    else
+        SELECTIONS[mlflow]="no"
+    fi
+
+    if forest_confirm "DVC data and pipeline versioning: dvc.yaml mirroring make, remote placeholder, make dvc-*?" "n"; then
+        SELECTIONS[dvc]="yes"
+    else
+        SELECTIONS[dvc]="no"
+    fi
+
     local infra
     infra=$(forest_select_many "Where will this project run?" \
         "local:Local machine only" \

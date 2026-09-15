@@ -22,6 +22,13 @@ setup: ## First-time project setup (install deps, hooks, etc.)
 
 check: lint test ## Run all quality checks
 
+# Aggregates: each language module adds its suffixed target (lint-py, lint-r,
+# ...) as a prerequisite, so a multi-language project defines each recipe once.
+lint: ## Lint every language
+format: ## Format every language
+test: ## Run every language's tests
+test-coverage: ## Test coverage for every language
+
 clean: ## Remove generated artifacts
 	@echo "Cleaning..."
 	@find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true

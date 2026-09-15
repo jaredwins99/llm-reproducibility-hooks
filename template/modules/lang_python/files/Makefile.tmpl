@@ -1,12 +1,19 @@
 # === Python targets ===
-lint: ## Run ruff linter
+# Language-suffixed recipes; lint, format, test and test-coverage (declared in
+# the base Makefile) collect every language's target as a prerequisite.
+lint: lint-py
+format: format-py
+test: test-py
+test-coverage: test-coverage-py
+
+lint-py: ## Run ruff linter
 	ruff check src/ scripts/ correctness/tests/
 
-format: ## Run ruff formatter
+format-py: ## Run ruff formatter
 	ruff format src/ scripts/ correctness/tests/
 
-test: ## Run pytest
+test-py: ## Run pytest
 	python -m pytest correctness/tests/ -v
 
-test-coverage: ## Run pytest with coverage
+test-coverage-py: ## Run pytest with coverage
 	python -m pytest correctness/tests/ --cov=src/{{project_name_py}} --cov-report=html

@@ -8,8 +8,9 @@ See `STRUCTURE.md` for the full file tree (auto-updated every 10 commits).
 
 This project is organized by the Five Tenets: Reproducibility, Correctness, Legibility, Observability, Security.
 
-- `src/` — Reusable library and tooling code (functions always here, never in scripts/)
-- `scripts/` — Pipeline steps (numbered, sequential). Orchestrators (Makefile, dvc.yaml, _targets.R) nest here visually.
+- `src/` — Reusable library and tooling code (functions always here, never in scripts/). `src/<package>/` is the data-agnostic library; `src/<package>_study/` holds this study's config loading, sources and rules.
+- `config/` — Study configuration: paths, thresholds, rule tables
+- `scripts/` — Pipeline steps (numbered, sequential; orchestration only). The Makefile is the single orchestrator; dvc.yaml and _targets.R, when present, call it. They nest here visually.
 - `outputs/` — Reports and visuals
 - `reproducibility/` — Docker, environment configs, infrastructure
 - `correctness/` — Tests, hooks

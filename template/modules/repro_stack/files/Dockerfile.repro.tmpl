@@ -15,7 +15,10 @@ FROM rocker/r-ver:${R_VERSION}
 ARG ENV_NAME={{project_name}}
 ARG CMDSTAN_VERSION=2.38.0
 ARG MICROMAMBA_VERSION=2.0.5
-ARG PPM_SNAPSHOT=latest
+# Dated Posit Package Manager snapshot, so R binary installs are repeatable.
+# make pin-renv moves it to the day renv.lock is written; override with
+#   make docker-build PPM_SNAPSHOT=YYYY-MM-DD
+ARG PPM_SNAPSHOT=2026-09-01
 
 ENV ENV_PREFIX=/opt/conda/envs/${ENV_NAME} \
     CMDSTAN_DIR=/opt/cmdstan \

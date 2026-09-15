@@ -14,8 +14,11 @@ This project is organized around five guiding principles:
 
 ## Directory Map
 ```
-├── src/                  Source code (reusable tooling)
-├── scripts/              Pipeline steps (numerically ordered)
+├── config/               Study configuration (paths, thresholds, rules)
+├── src/<package>/        Library: data-agnostic functions, reusable by another study
+├── src/<package>_study/  Study pipeline: config loading, sources, study rules
+├── scripts/              Pipeline steps (numerically ordered; orchestration only)
+├── Makefile              Single orchestrator (stage order in project.mk with repro_stack)
 ├── data/                 Versioned data
 ├── reproducibility/      Docker, environments, infrastructure
 ├── correctness/          Tests, contracts

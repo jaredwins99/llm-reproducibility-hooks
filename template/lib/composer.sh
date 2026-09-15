@@ -83,7 +83,7 @@ def deep_merge(base, incoming):
             base[key] = deep_merge(base[key], value) if key in base else value
         return base
     if isinstance(base, list) and isinstance(incoming, list):
-        return base + incoming
+        return base + [item for item in incoming if item not in base]
     return incoming
 with open(sys.argv[1]) as handle:
     base = json.load(handle)
@@ -199,6 +199,30 @@ compose_module() {
             echo "$content" > "$output_path"
         fi
     done < <(find "$files_dir" -type f -print0)
+}
+
+# Add a conda package to the project's environment file(s) unless it is listed.
+# Covers repro_stack's environment.yml and lang_python_conda's copy; a later
+# `make pin-conda` pins the version. Usage: env_add_conda_package <package>
+env_add_conda_package() {
+    local package="$1" file added=false
+    for file in environment.yml reproducibility/environments/environment.yml; do
+        [[ -f "$file" ]] || continue
+        added=true
+        grep -qE "^[[:space:]]*-[[:space:]]*${package}([=<>! ]|$)" "$file" && continue
+        sed -i "0,/^dependencies:/s//dependencies:\n  - ${package}/" "$file"
+    done
+    if [[ "$added" == false && -f pyproject.toml ]]; then
+        echo "  add ${package} to the environment: uv add ${package}"
+    fi
+}
+
+# Append a line to project.mk (repro_stack) unless it is already there.
+# Usage: project_mk_add_line <line>
+project_mk_add_line() {
+    local line="$1"
+    [[ -f project.mk ]] || return 0
+    grep -qxF "$line" project.mk || printf '%s\n' "$line" >> project.mk
 }
 
 # Run post_install hook for a module if defined

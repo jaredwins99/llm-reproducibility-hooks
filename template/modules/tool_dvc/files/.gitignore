@@ -1,0 +1,4 @@
+# === DVC ===
+.dvc/tmp/
+.dvc/cache/
+.dvc/config.local

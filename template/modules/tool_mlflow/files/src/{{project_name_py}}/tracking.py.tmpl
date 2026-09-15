@@ -1,0 +1,73 @@
+"""Experiment tracking for {{project_name}}: a thin layer over MLflow.
+
+`tracked_run` opens an MLflow run and, besides whatever the caller logs,
+records what is needed to reproduce it: the git commit, whether the working
+tree was clean, and a SHA-256 of each pinned environment file.
+
+    import mlflow
+    from {{project_name_py}}.tracking import tracked_run
+
+    with tracked_run("model-fit", params={"chains": 4}):
+        fit = ...
+        mlflow.log_metric("elpd_loo", fit.elpd_loo)
+
+Runs go to MLFLOW_TRACKING_URI when it is set (for example a server started
+with `make mlflow-server`), otherwise to the SQLite store in mlruns/ at the
+repository root, which `make mlflow-ui` browses. The module is data-agnostic:
+experiments, parameters and metrics come from the caller.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import os
+import subprocess
+from contextlib import contextmanager
+from pathlib import Path
+
+import mlflow
+
+ROOT = Path(__file__).resolve().parents[2]
+PINNED_FILES = ("environment.yml", "renv.lock", "Dockerfile", "project.mk")
+
+
+def tracking_uri(root: Path = ROOT) -> str:
+    """MLFLOW_TRACKING_URI when set, else the SQLite store in root/mlruns."""
+    return os.environ.get("MLFLOW_TRACKING_URI") or f"sqlite:///{root / 'mlruns' / 'mlflow.db'}"
+
+
+def _git(root: Path, *args: str) -> str | None:
+    """Output of a git command run in root, or None when it fails."""
+    result = subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=False)
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
+def reproducibility_tags(root: Path = ROOT) -> dict[str, str]:
+    """Git commit, clean-tree flag and SHA-256 of each pinned file present in root."""
+    status = _git(root, "status", "--porcelain")
+    tags = {"git_commit": _git(root, "rev-parse", "HEAD") or "unknown",
+            "git_clean": "unknown" if status is None else str(status == "").lower()}
+    tags.update({f"sha256.{name}": hashlib.sha256((root / name).read_bytes()).hexdigest()
+                 for name in PINNED_FILES if (root / name).is_file()})
+    return tags
+
+
+@contextmanager
+def tracked_run(experiment: str, run_name: str | None = None,
+                params: dict | None = None, root: Path = ROOT):
+    """Run the block inside an MLflow run of `experiment`, tagged for reproduction.
+
+    Parameters are logged at the start; the active run is yielded.
+    """
+    local = "MLFLOW_TRACKING_URI" not in os.environ
+    if local:
+        (root / "mlruns" / "artifacts").mkdir(parents=True, exist_ok=True)
+    mlflow.set_tracking_uri(tracking_uri(root))
+    if mlflow.get_experiment_by_name(experiment) is None:
+        location = (root / "mlruns" / "artifacts" / experiment).as_uri() if local else None
+        mlflow.create_experiment(experiment, artifact_location=location)
+    mlflow.set_experiment(experiment)
+    with mlflow.start_run(run_name=run_name, tags=reproducibility_tags(root)) as run:
+        if params:
+            mlflow.log_params(params)
+        yield run

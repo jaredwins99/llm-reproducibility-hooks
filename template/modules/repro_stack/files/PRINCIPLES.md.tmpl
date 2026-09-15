@@ -22,6 +22,10 @@ or the edit) or **advisory** (expected, reviewed, not blocked).
 | A test file for every module | advisory | review (a project may add a gate) |
 | Config-driven design | advisory | review |
 | Empirical falsification of claims | advisory for code, enforced for findings | review; `make notes` |
+| One orchestrator: the Makefile, pipeline order in `project.mk` | advisory (enforced for `dvc.yaml`) | review; `make dvc-check` when DVC is used |
+| Scripts only orchestrate; functions live in `src/` | advisory | review |
+| Library package is data-agnostic; study specifics live in the study package and `config/` | advisory | review |
+| Module, function and chain docstrings follow the style guide | advisory | review |
 
 ## 1. Pandas as short pipes that report their shape
 
@@ -117,3 +121,41 @@ entry is missing. Changing what runs is a config edit and a re-run.
 `renv.lock` (R), `CMDSTAN_VERSION` (CmdStan), `.pre-commit-config.yaml`
 (hooks). A new dependency is added by importing it and running `make pin`,
 never by installing it ad hoc and leaving the pins stale. See `SETUP.md`.
+
+## 9. Layout: one orchestrator, a library, a study pipeline
+
+```
+Makefile, project.mk        the single orchestrator; project.mk holds the stage order
+config/                     study configuration: paths, thresholds, rule tables
+src/<package>/              library: data-agnostic functions (transforms, models,
+                            reporting, tracking); no config, paths or study constants
+src/<package>_study/        study pipeline: config loading, source readers, study
+                            rules; imports the library, never the reverse
+scripts/NN_<stage>.py       orchestration only: load config, call functions in one
+                            chain, report shapes, write; no def or class
+R/<package>/ (or DESCRIPTION + R/)   R library package; R/run/*.R  R stage runners
+correctness/tests/          tests for both packages; library tests use synthetic data
+```
+
+- **One orchestrator.** `make all` runs the pipeline; `PIPELINE_PY` and
+  `PIPELINE_R` in `project.mk` are the only place the order is written. DVC
+  (`dvc.yaml`) or targets may add caching, but each of their stages calls make
+  for one entry of that list, so nothing runs that make would not run.
+- **Scripts orchestrate.** A stage script reads config, calls library and study
+  functions in one chain, reports what changed and writes. A helper needed by
+  a script is added to a package and imported, even when only one script uses it.
+- **Library and study are separate packages.** The library could be reused by
+  another study unchanged: it takes frames and parameters as arguments and has
+  tests on synthetic data. What is true only of this study's data (column
+  names, labels, exclusions, thresholds) is in `config/` or the study package.
+  A function moves from study to library once it no longer names anything
+  study-specific.
+
+## 10. Comments and docstrings
+
+The structure is in `legibility/style-guide.md`: a module docstring says what
+the module provides (library) or which stage it runs, with a `Chain:` block
+listing the steps and a `Reads:`/`Writes:` line (scripts); a function
+docstring's first line says what it returns; section labels inside a long
+chain are the only comments beyond "why" notes.
+

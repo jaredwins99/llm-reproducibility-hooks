@@ -1,0 +1,34 @@
+# dvc.yaml — {{project_name}}
+#
+# The Makefile is the only orchestrator. Each stage runs one entry of the make
+# pipeline (PIPELINE_PY, then PIPELINE_R, in project.mk order) through make,
+# so a stage's command is defined once; DVC adds what make lacks: skipping
+# stages whose inputs are unchanged and versioning the data they write.
+#
+#   make dvc-stages   print stages generated from project.mk to paste here
+#   make dvc-check    fail when this file and project.mk disagree (pre-commit)
+#   make dvc-repro    run the stages whose deps changed
+#
+# Fill in deps (code, config and upstream outputs) and outs for each stage.
+# Outputs listed under outs are cached by DVC and gitignored automatically.
+#
+# Example, for PIPELINE_PY = scripts/01_extract.py and PIPELINE_R = R/run/fit.R:
+#
+#   stages:
+#     extract:
+#       cmd: make -s step M=scripts/01_extract.py
+#       deps:
+#         - scripts/01_extract.py
+#         - src
+#         - config
+#       outs:
+#         - data/01_extracted
+#     fit:
+#       cmd: make -s pipeline-r PIPELINE_R=R/run/fit.R
+#       deps:
+#         - R
+#         - data/01_extracted
+#       outs:
+#         - model_fits
+
+stages: {}

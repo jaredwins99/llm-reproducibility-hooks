@@ -1,10 +1,14 @@
 {
   "hooks": {
-    "PreToolUse": [
+    "PostToolUse": [
       {
-        "type": "command",
-        "matcher": "Edit|Write",
-        "command": "FILE_PATH=$(echo \"$CLAUDE_TOOL_INPUT\" | grep -oE '\"file_path\"[[:space:]]*:[[:space:]]*\"[^\"]+\\.py\"' | grep -oE '[^\"]+\\.py' | head -1); case \"$FILE_PATH\" in */src/*|*/scripts/*) if [ -f \"$FILE_PATH\" ]; then python correctness/checks/check_pipelines.py \"$FILE_PATH\" || { echo 'Pipeline style gate: see legibility/style-pipelines.md'; exit 2; }; fi ;; esac"
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pipe-gate.sh\""
+          }
+        ]
       }
     ]
   }

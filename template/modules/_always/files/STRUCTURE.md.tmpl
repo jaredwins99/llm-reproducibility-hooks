@@ -5,8 +5,11 @@ Run `bash correctness/hooks/update-structure.sh` to refresh manually.
 
 ```
 {{project_name}}/
-├── scripts/                  Pipeline scripts (numbered, sequential)
+├── config/                   Study configuration (paths, thresholds, rules)
+├── scripts/                  Pipeline scripts (numbered; orchestration only)
 ├── src/                      Source code (functions, tools — importable)
+│   ├── <package>/            Library: data-agnostic, reusable
+│   └── <package>_study/      Study pipeline: config loading, sources, study rules
 ├── data/                     Versioned data
 ├── outputs/                  Results (reports, visuals)
 ├── reproducibility/          Docker, environments, infrastructure
@@ -14,7 +17,7 @@ Run `bash correctness/hooks/update-structure.sh` to refresh manually.
 ├── legibility/               Style guides, conventions, ADRs
 ├── observability/            Logging, monitoring, runbooks
 ├── security/                 Secrets, permissions, audit
-├── Makefile                  Task runner (make help)
+├── Makefile                  Single orchestrator and task runner (make help)
 ├── CLAUDE.md                 AI context
 └── STRUCTURE.md              This file
 ```

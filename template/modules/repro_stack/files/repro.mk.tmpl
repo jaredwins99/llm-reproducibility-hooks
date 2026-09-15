@@ -49,6 +49,7 @@ SITE_CMD        ?=
 SERVE_CMD       ?=
 
 IMAGE           ?= $(ENV_NAME)
+PPM_SNAPSHOT    ?=
 PIN_FROM        ?= $(ENV_PREFIX)
 PIN_DIRS        ?= src scripts tests
 PIN_ARGS        ?=
@@ -100,16 +101,19 @@ all: ## Full pipeline: Python stages, R runners, then the site
 
 pipeline: all ## Alias for all
 
-pipeline-py: ## Python stages in PIPELINE_PY order
+pipeline-py: ## Python stages in PIPELINE_PY order (a .py path runs as a script, anything else with python -m)
 	@set -e; for m in $(PIPELINE_PY); do \
-		echo "==> python -m $$m"; $(PY) -m $$m; \
+		case "$$m" in \
+			*.py) echo "==> python $$m"; $(PY) $$m ;; \
+			*) echo "==> python -m $$m"; $(PY) -m $$m ;; \
+		esac; \
 	done
 
 pipeline-r: ## R runners in PIPELINE_R order (per-script args: ARGS.<script basename>)
 	@set -e; $(foreach s,$(PIPELINE_R),echo "==> Rscript $(s) $(ARGS.$(basename $(notdir $(s))))"; $(RSCRIPT) $(s) $(ARGS.$(basename $(notdir $(s))));)
 
-step: ## One Python stage: make step M=package.module
-	$(PY) -m $(M)
+step: ## One Python stage: make step M=scripts/01_x.py or M=package.module
+	$(PY) $(if $(filter %.py,$(M)),$(M),-m $(M))
 
 # ---------------------------------------------------------------- checks
 
@@ -149,13 +153,17 @@ pin-conda: ## environment.yml from imports in PIN_DIRS, versions from PIN_FROM
 	$(PY) tools/pin_conda_env.py --prefix "$(PIN_FROM)" --name $(ENV_NAME) --dirs $(PIN_DIRS) $(PIN_ARGS) > $(ENV_FILE).new
 	mv $(ENV_FILE).new $(ENV_FILE)
 
-pin-renv: ## renv.lock from packages referenced in R_DIRS
+pin-renv: ## renv.lock from packages referenced in R_DIRS; dates the Docker PPM snapshot
 	$(RSCRIPT) tools/snapshot_renv.R $(R_DIRS)
+	@if grep -q '^ARG PPM_SNAPSHOT=' Dockerfile 2>/dev/null; then \
+		sed -i "s/^ARG PPM_SNAPSHOT=.*/ARG PPM_SNAPSHOT=$$(date +%F)/" Dockerfile; \
+		echo "==> Dockerfile PPM_SNAPSHOT=$$(date +%F)"; \
+	fi
 
 # ---------------------------------------------------------------- docker
 
-docker-build: ## Build the image (conda env, renv library, CmdStan)
-	docker build -t $(IMAGE) .
+docker-build: ## Build the image (conda env, renv library, CmdStan); PPM_SNAPSHOT=date overrides the Dockerfile's
+	docker build $(if $(strip $(PPM_SNAPSHOT)),--build-arg PPM_SNAPSHOT=$(PPM_SNAPSHOT)) -t $(IMAGE) .
 
 docker-test: ## Run make check inside the image
 	docker run --rm $(IMAGE) make check

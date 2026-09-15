@@ -1,0 +1,20 @@
+"""Tests for {{project_name_py}}.tracking."""
+
+import pytest
+
+mlflow = pytest.importorskip("mlflow")
+
+from {{project_name_py}} import tracking  # noqa: E402
+
+
+def test_run_is_stored_locally_with_params_and_pin_hashes(tmp_path, monkeypatch):
+    monkeypatch.delenv("MLFLOW_TRACKING_URI", raising=False)
+    (tmp_path / "environment.yml").write_text("name: demo\n")
+    with tracking.tracked_run("unit", params={"alpha": 1}, root=tmp_path) as run:
+        mlflow.log_metric("score", 0.5)
+    stored = mlflow.get_run(run.info.run_id)
+    assert stored.data.params == {"alpha": "1"}
+    assert stored.data.metrics == {"score": 0.5}
+    assert "sha256.environment.yml" in stored.data.tags
+    assert stored.data.tags["git_commit"]
+    assert (tmp_path / "mlruns" / "mlflow.db").is_file()

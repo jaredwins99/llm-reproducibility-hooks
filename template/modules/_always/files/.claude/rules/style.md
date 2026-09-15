@@ -18,6 +18,9 @@ Use em dashes (`# ---`) to separate logical sections. No ASCII art, no banners, 
 
 - Functions always live in `src/`. Never define reusable functions in `scripts/`.
 - `scripts/` contains pipeline code that calls functions from `src/`.
+- `src/<package>/` is the data-agnostic library: no config reads, paths or study column names. Study specifics go in `src/<package>_study/` and `config/`.
+- The Makefile is the single orchestrator; the stage order is written once (project.mk with repro_stack).
+- Docstrings follow `legibility/style-guide.md`: module purpose, function return, and a `Chain:` block for pipeline scripts.
 
 ## Logging
 

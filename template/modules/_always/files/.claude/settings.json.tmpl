@@ -13,23 +13,33 @@
       "Bash(bash reference/stan/search.sh *)"
     ],
     "deny": [
-      "Bash(rm -rf /)*",
-      "Bash(git push --force)*"
+      "Bash(rm -rf /)",
+      "Bash(rm -rf / *)",
+      "Bash(git push --force)",
+      "Bash(git push --force *)"
     ]
   },
   "hooks": {
     "PreToolUse": [
       {
-        "type": "command",
-        "matcher": "Edit|Write",
-        "command": "FILE_PATH=$(echo \"$CLAUDE_TOOL_INPUT\" | grep -oE '\"file_path\"\\s*:\\s*\"[^\"]+\\.stan\"' | grep -oE '[^\"]+\\.stan' | head -1); if [ -n \"$FILE_PATH\" ] && [ -f \"$FILE_PATH\" ]; then echo '=== Stan reference search (auto-fired on .stan edit) ==='; bash reference/stan/search.sh --from-file \"$FILE_PATH\" 2>/dev/null | head -80; fi"
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/stan-reference.sh\""
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "type": "command",
-        "matcher": "Edit",
-        "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE '\\.(py|R|r)\"'; then make format 2>/dev/null || true; fi"
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-on-edit.sh\""
+          }
+        ]
       }
     ]
   }

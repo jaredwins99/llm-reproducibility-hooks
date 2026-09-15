@@ -1,0 +1,9 @@
+  - repo: local
+    hooks:
+      - id: dvc-check
+        name: dvc.yaml runs the make pipeline in project.mk order
+        entry: make -s dvc-check
+        language: system
+        pass_filenames: false
+        files: '^(dvc\.yaml|project\.mk)$'
+        stages: [pre-commit]

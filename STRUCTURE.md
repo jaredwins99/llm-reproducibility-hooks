@@ -24,6 +24,8 @@ template/
 
 **Existing project**: `./template/apply.sh --module repro_stack --output-dir ~/projects/existing [--claude-private] [--keep-existing]` installs one module without the wizard. `repro_stack` (also offered by the wizard as "Reproducible stack") adds pinned `environment.yml` and `renv.lock`, CmdStan, a Dockerfile, `repro.mk` + `project.mk` make targets (`make setup && make all`, `make check`), pre-commit hooks, `PRINCIPLES.md`, and Claude rules and hooks.
 
+**Optional tools** (wizard questions in the Infrastructure tree, default no; or `apply.sh --module tool_mlflow` / `--module tool_dvc`): `tool_mlflow` adds a local MLflow tracking store in `mlruns/`, a `tracked_run` helper that tags runs with the git commit and pinned-file hashes, and `make mlflow-ui` / `make mlflow-server`. `tool_dvc` adds `dvc.yaml` whose stages call make for each entry of the pipeline order in `project.mk`, `make dvc-*` targets including `dvc-check`, a `DVC_REMOTE` placeholder, and gitignore entries. Both add their package to the conda environment when one exists, so the repro_stack Docker image includes it.
+
 Part A is mostly complete. It will be revisited after the Stan proof of concept lands.
 
 ## Shared Pool — `reference/`

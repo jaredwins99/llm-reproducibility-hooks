@@ -362,25 +362,26 @@ post_scaffold_docker_registry() {
 post_scaffold_dvc() {
     local project_dir="$1"
 
-    # Only offer for data-related projects
-    if [[ "${SELECTIONS[project_types]:-}" != *"data"* && "${SELECTIONS[project_types]:-}" != *"ml"* ]]; then
-        return 0
-    fi
+    # Only for projects that chose the tool_dvc module
+    [[ "${SELECTIONS[dvc]:-no}" == "yes" ]] || return 0
 
     if ! command -v dvc &>/dev/null; then
         echo "  Skipping DVC setup (dvc not found)."
         return 0
     fi
 
-    if ! forest_confirm "Initialise DVC for data versioning?" "n"; then
+    if [[ ! -d "$project_dir/.git" ]]; then
+        echo "  Skipping DVC init (not a git repository yet); run 'make dvc-init' later."
         return 0
     fi
 
-    (
-        cd "$project_dir"
-        dvc init
-    )
-    echo -e "  ${FOREST_GREEN}✓${FOREST_RESET} DVC initialised."
+    if [[ ! -d "$project_dir/.dvc" ]]; then
+        (
+            cd "$project_dir"
+            dvc init
+        )
+        echo -e "  ${FOREST_GREEN}✓${FOREST_RESET} DVC initialised."
+    fi
 
     if forest_confirm "Configure a DVC remote now?" "n"; then
         local remote_url
@@ -397,16 +398,15 @@ post_scaffold_dvc() {
 post_scaffold_mlflow() {
     local project_dir="$1"
 
-    if [[ "${SELECTIONS[project_types]:-}" != *"ml"* ]]; then
-        return 0
-    fi
+    # Only for projects that chose the tool_mlflow module
+    [[ "${SELECTIONS[mlflow]:-no}" == "yes" ]] || return 0
 
     if ! command -v mlflow &>/dev/null; then
         echo "  Skipping MLflow setup (mlflow not found)."
         return 0
     fi
 
-    if ! forest_confirm "Configure MLflow tracking URI?" "n"; then
+    if ! forest_confirm "Use an MLflow tracking server instead of the local mlruns/ store?" "n"; then
         return 0
     fi
 
@@ -473,8 +473,11 @@ print_next_steps() {
     echo -e "    ${FOREST_CYAN}3.${FOREST_RESET} Read ${FOREST_DIM}CLAUDE.md${FOREST_RESET} for project conventions"
     echo -e "    ${FOREST_CYAN}4.${FOREST_RESET} Run ${FOREST_DIM}make help${FOREST_RESET} to see available targets"
 
-    if [[ "${SELECTIONS[project_types]:-}" == *"data"* || "${SELECTIONS[project_types]:-}" == *"ml"* ]]; then
-        echo -e "    ${FOREST_CYAN}5.${FOREST_RESET} Set up data storage with ${FOREST_DIM}dvc remote add${FOREST_RESET}"
+    if [[ "${SELECTIONS[dvc]:-no}" == "yes" ]]; then
+        echo -e "    ${FOREST_CYAN}5.${FOREST_RESET} Set a DVC remote with ${FOREST_DIM}make dvc-init DVC_REMOTE=<url>${FOREST_RESET}"
+    fi
+    if [[ "${SELECTIONS[mlflow]:-no}" == "yes" ]]; then
+        echo -e "    ${FOREST_CYAN}6.${FOREST_RESET} Browse tracked runs with ${FOREST_DIM}make mlflow-ui${FOREST_RESET}"
     fi
 
     echo ""

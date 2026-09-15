@@ -1,26 +1,24 @@
-"""Extract: pull raw data from sources into the first staged directory.
+"""Extract: the raw export named in config/study.yaml, staged as parquet.
 
-Replace read_source with the real reader. The shape report and the row-count
-assertion are the parts to keep: every stage states what it produced.
+Orchestration only; functions live in src/.
+
+Chain:
+    read_source (study)   raw export, every column as text
+    px.log                shape after reading
+    report                stage shape, printed before the write
+
+Reads:  paths.raw        Writes: paths.extracted
 """
-
-import pandas as pd
 
 from {{project_name_py}}.core.accessors import *  # noqa: F401,F403
 from {{project_name_py}}.core.report import report
+from {{project_name_py}}_study.config import load_config, output_path
+from {{project_name_py}}_study.sources import read_source
 
+config = load_config()
 
-def read_source(path):
-    """Read one raw export. Swap this for the project's real source."""
-    return pd.read_csv(path, dtype=str, keep_default_na=False)
+extracted = (read_source(config["paths"]["raw"])
+             .px.log("extracted"))
 
-
-def main(source, destination):
-    """Read, report, write."""
-    frame = read_source(source).px.log('extracted')
-    report('extract', frame)
-    frame.to_parquet(destination, compression='zstd', index=False)
-
-
-if __name__ == '__main__':
-    main('data/raw/example.csv', 'data/01_extracted/example.parquet')
+report("extract", extracted)
+extracted.to_parquet(output_path(config, "extracted"), compression="zstd", index=False)

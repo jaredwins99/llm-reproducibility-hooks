@@ -21,6 +21,11 @@ Comments should be extremely sparse. The vast majority of code should need no in
 - "What" comments that restate the code: `# filter rows`, `# increment counter`, `# read file`
 - If you feel you need a "what" comment, the code isn't clear enough — rename variables or extract a function
 
+**Pipeline chains:** a long chain may carry one-word or short section labels on
+their own line (`# Outcomes`). In projects where the pipe gate runs with
+`--strict` (PIPE001 blocking), the same labels go in the module docstring's
+`Chain:` block instead.
+
 **Section separator format (standardized):**
 ```
 # ———————————————————————————————————
@@ -28,6 +33,45 @@ Comments should be extremely sparse. The vast majority of code should need no in
 # ———————————————————————————————————
 ```
 Use em dashes (`———`). This is the only accepted separator style.
+
+## Docstrings
+
+Every module and every function has a docstring; the first line is a sentence.
+
+**Library module** (`src/<package>/...`): what the module provides and the
+contract its functions share.
+```python
+"""Frame-to-frame transforms that know nothing about any study.
+
+Each function takes a DataFrame and plain parameters and returns a new
+DataFrame, so it can sit in a .pipe() chain.
+"""
+```
+
+**Library function**: first line says what it returns; NumPy-style
+`Parameters` and `Returns` sections (enforced by ruff in library projects).
+
+**Study module and function** (`src/<package>_study/...`): what is specific to
+this study, and the config keys it reads.
+
+**Pipeline script** (`scripts/NN_<stage>.py`): the stage in one line, then a
+`Chain:` block with one line per step (the function, where it lives, what it
+does), then what the stage reads and writes.
+```python
+"""Transform: clean and reshape the extracted frame in one chain.
+
+Chain:
+    drop_blank_columns (library)     columns empty in every row
+    normalise_whitespace (library)   strip text columns
+    report                           stage shape, printed before the write
+
+Reads:  paths.extracted  Writes: paths.transformed
+"""
+```
+
+**R**: roxygen blocks (`#'`) on every library function with `@param` and
+`@return`; runner scripts in `R/run/` open with a comment block in the same
+shape as a pipeline script docstring (stage, Chain, Reads/Writes).
 
 ## Naming Conventions
 - `snake_case` for functions, variables, and modules
@@ -45,3 +89,21 @@ Always use OS-portable path construction. Never hardcode `/` or `\\`.
 - `scripts/` holds pipeline steps (numerically ordered, runnable)
 - Functions always live in `src/`, never in `scripts/`
 - Extract into a function only when complexity demands it, not preemptively
+
+## File Layout
+
+```
+Makefile, project.mk        single orchestrator; the stage order is written once
+config/                     study configuration (paths, thresholds, rule tables)
+src/<package>/              library package: data-agnostic, reusable, no config reads
+src/<package>_study/        study pipeline package: config loading, sources, study rules
+scripts/NN_<stage>.py       orchestration only: config -> function chain -> report -> write
+correctness/tests/          tests for both packages
+```
+
+- The library never imports the study package, reads `config/` or names a
+  study's columns, labels or paths; it takes them as arguments.
+- Scripts define no functions or classes. They load config, run one chain of
+  library and study functions, report shapes and write.
+- The Makefile runs the stages (`make all`, `make pipeline`); DVC or targets,
+  when used, call make rather than duplicating commands.

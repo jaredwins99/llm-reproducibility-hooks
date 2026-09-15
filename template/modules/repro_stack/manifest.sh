@@ -75,8 +75,12 @@ _repro_precommit() {
     { echo ""; cat "$fragment"; } >> "$config"
 }
 
-# The pipe gate has one source: the style_pipelines module.
+# The pipe gate and its Claude hook have one source: the style_pipelines module.
 _repro_gate() {
+    if [[ ! -f .claude/hooks/pipe-gate.sh ]]; then
+        mkdir -p .claude/hooks
+        cp "$REPRO_STACK_DIR/../style_pipelines/files/.claude/hooks/pipe-gate.sh" .claude/hooks/pipe-gate.sh
+    fi
     local scaffolded=correctness/checks/check_pipelines.py
     if [[ -f "$scaffolded" ]]; then
         sed -i "s|^PIPE_GATE .*|PIPE_GATE       = $scaffolded|" project.mk

@@ -24,7 +24,10 @@ TEST_R_CMD      =
 NOTES_CMD       =
 NOTES_FAST_CMD  =
 
-# Pipeline, in order: Python modules run with python -m, then R scripts.
+# The pipeline, in order. The Makefile is the only orchestrator: this list is
+# the one place the order is written (dvc.yaml, when used, mirrors it).
+# PIPELINE_PY: orchestration scripts (scripts/NN_<stage>.py) or modules run
+# with python -m; PIPELINE_R: R runner scripts, run after the Python stages.
 # Per-script arguments: ARGS.<basename> = --flag
 PIPELINE_PY     =
 PIPELINE_R      =

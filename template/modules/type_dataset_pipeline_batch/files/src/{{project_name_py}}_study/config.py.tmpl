@@ -1,0 +1,28 @@
+"""Study configuration: config/study.yaml, read once per stage.
+
+Anything that can change without the logic changing (paths, thresholds,
+rules) is a config entry. A missing entry fails loudly with its key name.
+"""
+
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parents[2]
+CONFIG = ROOT / "config" / "study.yaml"
+
+
+def load_config(path: Path = CONFIG) -> dict:
+    """The parsed study config, with every path entry made absolute from the repository root."""
+    config = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if "paths" not in config:
+        raise KeyError(f"{path} has no 'paths' section")
+    return {**config, "paths": {key: ROOT / value for key, value in config["paths"].items()}}
+
+
+def output_path(config: dict, key: str) -> Path:
+    """config paths[key], with its parent directory created."""
+    if key not in config["paths"]:
+        raise KeyError(f"config/study.yaml paths has no entry '{key}'")
+    config["paths"][key].parent.mkdir(parents=True, exist_ok=True)
+    return config["paths"][key]

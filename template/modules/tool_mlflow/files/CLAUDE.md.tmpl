@@ -1,0 +1,9 @@
+## MLflow (experiment tracking)
+
+Wrap a model fit or an evaluation in `{{project_name_py}}.tracking.tracked_run`;
+it tags the run with the git commit and hashes of the pinned environment files.
+Runs are stored in `mlruns/` (gitignored) unless `MLFLOW_TRACKING_URI` is set.
+Results quoted in notes or reports cite the run id.
+
+- `make mlflow-ui` — browse local runs
+- `make mlflow-server` — a tracking server; set `MLFLOW_TRACKING_URI=http://host:port`

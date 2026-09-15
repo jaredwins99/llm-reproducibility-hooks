@@ -1,0 +1,42 @@
+"""Frame-to-frame transforms that know nothing about any study.
+
+Library code: each function takes a DataFrame (and plain parameters) and
+returns a new DataFrame, so it can sit in a `.pipe()` chain. Nothing here
+reads config/, data paths or study constants.
+"""
+
+import pandas as pd
+
+
+def drop_blank_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    """Drop the columns that are empty or whitespace in every row.
+
+    Parameters
+    ----------
+    frame : pandas.DataFrame
+        Any frame.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The frame without its blank columns.
+    """
+    blank = [c for c in frame.columns if frame[c].astype(str).str.strip().eq("").all()]
+    return frame.drop(columns=blank)
+
+
+def normalise_whitespace(frame: pd.DataFrame) -> pd.DataFrame:
+    """Strip leading and trailing whitespace from every text column.
+
+    Parameters
+    ----------
+    frame : pandas.DataFrame
+        Any frame.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The frame with text columns stripped; other columns unchanged.
+    """
+    text = frame.select_dtypes(include="object").columns
+    return frame.assign(**{c: frame[c].astype(str).str.strip() for c in text})

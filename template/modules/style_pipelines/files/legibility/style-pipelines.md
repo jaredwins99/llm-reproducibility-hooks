@@ -119,7 +119,7 @@ drop rows with no item name    19,457 ->   19,457     +0
 
 | Layer | Mechanism | Blocks |
 |---|---|---|
-| Write | `PreToolUse` hook in `.claude/settings.json` | the edit |
+| Write | `PostToolUse` hook (`.claude/hooks/pipe-gate.sh`, registered in `.claude/settings.json`) | the edit: violations go back to Claude to fix |
 | Commit | `pipelines-gate` in `.pre-commit-config.yaml` | the commit |
 | Merge | `check-pipelines` job in CI | the merge |
 

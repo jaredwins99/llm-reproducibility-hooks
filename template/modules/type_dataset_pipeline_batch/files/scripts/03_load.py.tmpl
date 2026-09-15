@@ -1,22 +1,25 @@
 """Load: write the transformed frame to its destination.
 
-The validation is deliberate. A load step that silently writes zero rows is
-the failure this stage exists to prevent.
+Orchestration only; functions live in src/. The validation is deliberate: a
+load step that silently writes zero rows is the failure this stage prevents.
+
+Chain:
+    px.val    at least one row
+    report    stage shape, printed before the write
+
+Reads:  paths.transformed  Writes: paths.output
 """
 
 import pandas as pd
 
 from {{project_name_py}}.core.accessors import *  # noqa: F401,F403
 from {{project_name_py}}.core.report import report
+from {{project_name_py}}_study.config import load_config, output_path
 
+config = load_config()
 
-def main(source, destination):
-    """Read, report, validate non-empty, write."""
-    frame = (pd.read_parquet(source)
-             .px.val(lambda f: len(f) > 0, f'{source} produced no rows'))
-    report('load', frame)
-    frame.to_csv(destination, index=False)
+loaded = (pd.read_parquet(config["paths"]["transformed"])
+          .px.val(lambda frame: len(frame) > 0, "the transform stage produced no rows"))
 
-
-if __name__ == '__main__':
-    main('data/02_transformed/example.parquet', 'outputs/example.csv')
+report("load", loaded)
+loaded.to_csv(output_path(config, "output"), index=False)

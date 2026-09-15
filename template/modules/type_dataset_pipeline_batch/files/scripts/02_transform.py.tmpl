@@ -1,36 +1,29 @@
-"""Transform: clean and reshape, one chain, each step a named function.
+"""Transform: clean and reshape the extracted frame in one chain.
 
-Every step takes a frame and returns a frame, so the chain reads as the list
-of things that happen. Nothing is reassigned; nothing mutates in place.
+Orchestration only; functions live in src/. Every step takes a frame and
+returns a frame, so the chain reads as the list of things that happen.
+
+Chain:
+    drop_blank_columns (library)     columns empty in every row
+    normalise_whitespace (library)   strip text columns
+    report                           stage shape, printed before the write
+
+Reads:  paths.extracted  Writes: paths.transformed
 """
 
 import pandas as pd
 
 from {{project_name_py}}.core.accessors import *  # noqa: F401,F403
 from {{project_name_py}}.core.report import report
+from {{project_name_py}}.core.transforms import drop_blank_columns, normalise_whitespace
+from {{project_name_py}}_study.config import load_config, output_path
 
+config = load_config()
 
-def drop_blank_columns(frame):
-    """Remove columns that are empty in every row."""
-    blank = [c for c in frame.columns if frame[c].astype(str).str.strip().eq('').all()]
-    return frame.drop(columns=blank)
+transformed = (pd.read_parquet(config["paths"]["extracted"])
+               .pipe(drop_blank_columns)
+               .px.log("after dropping blank columns")
+               .pipe(normalise_whitespace))
 
-
-def normalise_whitespace(frame):
-    """Strip leading and trailing whitespace from every text column."""
-    text = frame.select_dtypes(include='object').columns
-    return frame.assign(**{c: frame[c].astype(str).str.strip() for c in text})
-
-
-def main(source, destination):
-    """Read, chain, report, write."""
-    frame = (pd.read_parquet(source)
-             .pipe(drop_blank_columns)
-             .px.log('after dropping blank columns')
-             .pipe(normalise_whitespace))
-    report('transform', frame)
-    frame.to_parquet(destination, compression='zstd', index=False)
-
-
-if __name__ == '__main__':
-    main('data/01_extracted/example.parquet', 'data/02_transformed/example.parquet')
+report("transform", transformed)
+transformed.to_parquet(output_path(config, "transformed"), compression="zstd", index=False)
