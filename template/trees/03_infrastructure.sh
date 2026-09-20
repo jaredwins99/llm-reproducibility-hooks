@@ -11,6 +11,12 @@ tree_03_walk() {
         SELECTIONS[reproducible_stack]="no"
     fi
 
+    if forest_confirm "Decision notes: notes that declare the files they cover, a generated index, and findings whose evidence command is re-run?" "y"; then
+        SELECTIONS[decision_notes]="yes"
+    else
+        SELECTIONS[decision_notes]="no"
+    fi
+
     if forest_confirm "MLflow experiment tracking: local tracking store, tracked_run helper, make mlflow-ui?" "n"; then
         SELECTIONS[mlflow]="yes"
     else

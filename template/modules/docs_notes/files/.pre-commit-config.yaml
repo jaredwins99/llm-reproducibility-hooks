@@ -1,0 +1,16 @@
+  - repo: local
+    hooks:
+      - id: notes-check
+        name: notes check (structure and coverage)
+        entry: bash correctness/hooks/notes-gate.sh
+        language: system
+        always_run: true
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: notes-evidence
+        name: notes check (re-runs finding evidence)
+        entry: bash correctness/hooks/notes-gate.sh --evidence
+        language: system
+        always_run: true
+        pass_filenames: false
+        stages: [pre-push]
