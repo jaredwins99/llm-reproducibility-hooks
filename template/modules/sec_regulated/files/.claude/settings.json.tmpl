@@ -1,9 +1,3 @@
-{{#if_eq ai_tooling "disabled"}}
 {
-  "telemetry": false
+  "telemetry": {{telemetry_json}}
 }
-{{else}}
-{
-  "telemetry": true
-}
-{{/if_eq}}

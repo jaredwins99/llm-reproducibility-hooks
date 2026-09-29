@@ -1,16 +1,16 @@
 # Next Steps
 
-## Current Focus: Stan Proof of Concept
+## Current Focus: template (hens) + lexis
 
-**The long-term goal of this project remains: a one-click interactive setup (`init.sh`) that scaffolds opinionated, reproducible scientific projects.** That goal is now on the backburner.
+**The long-term goal of this project remains: a one-click interactive setup (`init.sh`) that scaffolds opinionated, reproducible scientific projects.** That work is active again on the `hens` branch (repro_stack, docs_notes, tool_mlflow/tool_dvc, style_pipelines, apply.sh).
 
-For the near term, all effort goes into the **Stan reference-forcing proof of concept**: measuring whether forcing Claude to consult reference materials measurably improves code quality, and building the tooling around that. The A/B test methodology, eval harness, and failure-mode analysis (see three workstreams in `FELLOWSHIP_PITCH.md` and below) are the priority.
+The **Stan reference-forcing subproject is paused** — it is independent of dev_template proper and may be resumed later. Its state at pause: Pilot 1 written up in `eval/RESULTS.md`; big run `v2run2` stopped at 124/312 trials, partial JSONL preserved in `eval/results/` for resumption.
 
-Once the Stan case is solid, we return to the wider template and generalize the reference-forcing pattern to other domains (pandas, numpy, etc.).
+The **lexis subproject is active**: pilot 2 (v2, drift-gated) is complete; next steps are E-replay replicates (per-trial `bundle.json`) and a pilot-2 writeup.
 
 ## Three Directions
 
-### Direction 1: Test Stan Reference Forcing
+### Direction 1: Test Stan Reference Forcing (paused with the Stan subproject)
 - Write a real Stan model and see if the hook + search actually makes Claude reference the docs
 - Test with: hierarchical model, mixture model, GP, ODE — each should trigger different reference lookups
 - Measure: does Claude get reparameterization right? Does it avoid common mistakes?
@@ -58,14 +58,14 @@ Topics not yet configured with specific preferences:
 ## Current State Summary
 
 ### Framework Stats
-- **184+ template files** across 28 modules
-- **172 Stan reference files** (1.6MB) with class-prioritized search
-- **10 commits** on `jaredwins99/dev-template` (private, deploy key configured)
+- **33 modules** with manifests and template files
+- **733 Stan reference files** (26MB: 172 docs + 561 example models) with class-prioritized search
+- Private repo `jaredwins99/dev-template` (deploy key configured)
 - **Tested**: Python+uv, R+renv, lock file replay — all pass
 
 ### What's Built and Configured
 - 5 decision trees (all interactive)
-- 28 modules with manifests and template files
+- 33 modules with manifests and template files
 - Python ruff config: 17 rule categories, single quotes, 88 line length, library-conditional extras (TCH, ANN, D)
 - R lintr config: 12 linters, same-line braces, both pipes allowed, tidyverse preferred
 - Data pipeline style guide: 9 rules, px accessor, preamble

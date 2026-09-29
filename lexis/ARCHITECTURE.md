@@ -1,9 +1,12 @@
 # Lexis — Architecture
 
-Second empirical subproject of the dev template (sibling of `eval/`). Measures
-how inhabiting a **lexis** (a role-associated register/sociolect, e.g., "hunter")
-shifts an LLM's substantive answers relative to receiving the same demand in
-plain language.
+Second empirical subproject spawned from dev_template (sibling of `eval/`;
+independent of dev_template proper). Measures how inhabiting a **lexis** — a
+**bounded linguistic repertoire**, defined by what its speakers CANNOT say
+(restricted vocabulary, abstraction ceiling, absent hedging, syntax limits;
+Bernstein's restricted vs. elaborated codes) — shifts an LLM's substantive
+answers relative to receiving the same demand in plain language. A lexis is
+not additive jargon; simplified speech is a primary direction.
 
 Reuses the eval harness pattern: deterministic orchestration, isolated
 subprocess calls to `claude -p`, per-trial artifacts on disk, append-only JSONL
@@ -78,13 +81,31 @@ Same rules as `eval/` (see `.claude/rules/eval-integrity.md`, which covers
 ```
 lexis/
 ├── ARCHITECTURE.md
-├── harness/
+├── DESIGN_NOTES.md    # principles (≤18 words/bullet, test-enforced)
+├── ROLES.md           # role candidates by constraint level
+├── RESULTS_pilot1.md  # frozen pilot-1 findings (v1)
+├── harness/           # shared across config versions
 │   ├── spec.py        # StageOutput, dataclasses, parsing helpers
-│   ├── pipeline.py    # run_stage / run_trial: A→B→C→D→(E × arms)
-│   └── run.py         # CLI: --trials N --arms lexis control --models ...
-├── prompts/           # stage prompt templates (A, B, C, D, E-control wrapper)
-└── results/           # <run_id>.jsonl + stage transcripts (gitignored)
+│   ├── pipeline.py    # run_stage / run_trial: A→B→C→D→(E × arms), drift gate
+│   └── run.py         # CLI: --config-dir (default v2) --drift-gate ...
+├── prompts/ topics/ roles/ results/   # v1 config (frozen after pilot 1)
+└── v2/                # v2 config: pinned truth conditions + drift gate
+    ├── prompts/       # incl. gate_drift.md (haiku judge) + fidelity-first D templates
+    ├── topics/ roles/ # banks; topics carry pinned truth_conditions
+    └── results/       # pilot2.jsonl + trial bundles (gitignored)
 ```
+
+## v2 (current): pinned truth conditions + drift gate
+
+Pilot 1 showed translations drifting semantically (added considerations,
+intensifiers, modal shifts), confounding the register effect. In v2, stage A
+pins each demand's truth conditions (modal, decision rule, scope, comparison);
+D must preserve them exactly, spending the register on form only; a haiku
+judge (`gate_drift.md`) checks each rendering and D retries up to 2× with the
+judge's violations appended; persistent failure marks the trial gate-failed.
+Every trial writes `bundle.json` (exact E prompts per arm) so E can be
+re-run identically for replicates. Pilot 2 ran the 5×6 factorial drift-gated;
+results in `v2/results/pilot2.jsonl` (writeup pending).
 
 ## Resolved design decisions (deep-dive Q&A, 2026-04)
 

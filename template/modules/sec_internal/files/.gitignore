@@ -6,3 +6,4 @@ data/proprietary/
 *.key
 .env
 .env.*
+!.env.example*

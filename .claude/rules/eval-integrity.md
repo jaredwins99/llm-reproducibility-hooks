@@ -21,7 +21,7 @@ These rules exist because the fellowship pitch hinges on the harness producing t
 - The only difference between variants is the CONTENTS of the trial directory (rules, hooks, reference/, permissions) — never the prompt itself.
 
 ## No contamination between variants
-- Trial directories are single-use. Create fresh under `/tmp/eval-<run_id>/trial-<n>/`, never reuse.
+- Trial directories are single-use. Create fresh under `/home/godli/eval-work/eval-<run_id>/trial-<n>/`, never reuse. Never under `/tmp` — it is tmpfs and a reboot already destroyed a run there once.
 - Never run trials under `dev_template/` — parent `CLAUDE.md`/rules would leak in.
 - The without-refs variant must contain NO `.claude/` directory, NO `CLAUDE.md`, NO symlinks or paths to the reference library.
 - The with-refs variant gets the reference library hard-linked inside the trial dir, never by symlink or external path.

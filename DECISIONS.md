@@ -26,7 +26,7 @@ Five tenets match five decision trees — kept equal for memorability.
 | 5. Data Sensitivity | multi-select | public, internal, regulated |
 
 ### Module System
-- 28 modules, each with `manifest.sh` + `files/` directory
+- 33 modules, each with `manifest.sh` + `files/` directory
 - Resolver maps selections to active modules via activation conditions
 - Accumulator files (.gitignore, Makefile, .pre-commit-config.yaml) merge across modules
 - `.dev_template.lock` records selections for reproducible replay
@@ -288,7 +288,7 @@ The goal: everything that can be expressed as a linter rule IS a linter rule. Ev
 - `lib/validators.sh` — input validation
 - `trees/01_project_type.sh` through `trees/05_data_sensitivity.sh`
 
-### Modules (28 modules, 172 files)
+### Modules (33 modules, 262 files)
 | Category | Modules |
 |---|---|
 | Always | `_always` (21 template files) |

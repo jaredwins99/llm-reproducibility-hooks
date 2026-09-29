@@ -52,8 +52,10 @@ tree_05_walk() {
 
         if forest_confirm "Disable telemetry everywhere?" "n"; then
             SELECTIONS[telemetry]="disabled"
+            SELECTIONS[telemetry_json]="false"
         else
             SELECTIONS[telemetry]="enabled"
+            SELECTIONS[telemetry_json]="true"
         fi
     fi
 }

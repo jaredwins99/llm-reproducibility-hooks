@@ -82,7 +82,7 @@ When in doubt, treat it as subjective.
 - Hooks: `.claude/hooks/` (Stop hook enforces validation)
 - Skills: `.claude/skills/` (`/judge`)
 - Subagents: `.claude/agents/` (`judge` — read-only, rubric-driven)
-- Path-scoped rules: `.claude/rules/` (only `eval-integrity.md` currently, scoped to `eval/**`)
+- Path-scoped rules: `.claude/rules/` (only `eval-integrity.md` currently, scoped to `eval/**`, `lexis/**`, `ongoing_issues.md`, `FELLOWSHIP_PITCH.md`)
 
 ## Memory index
 
