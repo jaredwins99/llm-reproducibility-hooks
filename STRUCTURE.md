@@ -60,9 +60,9 @@ reference/
 
 **Known gap**: the template's rules and hooks expect `reference/stan/` at the project root, but nothing copies or links the pool into a scaffolded project — outside this repo the hook does nothing. Logged in `ongoing_issues.md` (template-to-pool coupling).
 
-## Subproject — `eval/` (Stan reference-forcing study) — PAUSED
+## Subproject: Stan reference-forcing study — `eval/`
 
-Measurement infrastructure. Runs A/B trials comparing Claude agents with and without access to the reference pool. Spawned from dev_template as its first proof of concept, but independent of it — the harness, tasks, and scorers do not depend on `template/`.
+PAUSED. Measurement infrastructure. Runs A/B trials comparing Claude agents with and without access to the reference pool. Spawned from dev_template as its first proof of concept, but independent of it — the harness, tasks, and scorers do not depend on `template/`.
 
 ```
 eval/
@@ -77,9 +77,9 @@ eval/
 
 **Status**: paused. Pilot 1 is written up in `eval/RESULTS.md`; the big run `v2run2` stopped at 124/312 trials and its partial JSONL is preserved in `eval/results/` for future resumption. See `ongoing_issues.md` for open design issues.
 
-## Subproject — `lexis/` (lexis/register study) — ACTIVE
+## Subproject: lexis/register study — `lexis/`
 
-Measures how making an LLM inhabit a lexis (a bounded linguistic repertoire) shifts its substantive answers versus the same demand in plain language. Spawned from dev_template (reuses the eval harness pattern) but independent of it. See `lexis/ARCHITECTURE.md`.
+ACTIVE. Measures how making an LLM inhabit a lexis (a bounded linguistic repertoire) shifts its substantive answers versus the same demand in plain language. Spawned from dev_template (reuses the eval harness pattern) but independent of it. See `lexis/ARCHITECTURE.md`.
 
 ```
 lexis/
