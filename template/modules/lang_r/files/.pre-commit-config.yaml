@@ -3,3 +3,10 @@
     hooks:
       - id: style-files
       - id: lintr
+  - repo: local
+    hooks:
+      - id: r-same-call-shadowing
+        name: R same-call shadowing (correctness/checks/check_r_shadowing.R)
+        entry: Rscript --no-save --no-restore correctness/checks/check_r_shadowing.R
+        language: system
+        files: '\.[Rr]$'

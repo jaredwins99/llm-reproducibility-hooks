@@ -18,6 +18,9 @@ test-r: ## Run testthat
 test-coverage-r: ## Run tests with coverage
 	Rscript -e 'covr::package_coverage()'
 
+check-r-shadowing: ## Gate: a data-masking call's column read where a variable of its name was meant
+	Rscript --no-save --no-restore correctness/checks/check_r_shadowing.R $(wildcard src/R scripts)
+
 pipeline-targets: ## Run pipeline via targets (skips unchanged steps)
 	Rscript -e 'targets::tar_make()'
 
