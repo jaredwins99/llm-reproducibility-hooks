@@ -2,7 +2,10 @@
 
 Each test writes a fixture, runs the checker against it, and asserts which
 rules fire. The evasion tests exist because the first implementation gated on
-variable names and was defeated by renaming the frame.
+variable names and was defeated by renaming the frame. The last tests cover
+writes through .loc, .iloc, .at and .iat, and paths the gate cannot check.
+The checker is found where the module scaffolds it (correctness/checks/) or
+where repro_stack vendors it (tools/), so a project runs this file unchanged.
 """
 
 from __future__ import annotations
@@ -13,7 +16,9 @@ from pathlib import Path
 
 import pytest
 
-CHECKER = Path(__file__).resolve().parents[1] / 'checks' / 'check_pipelines.py'
+CHECKER = next(path for path in (Path(__file__).resolve().parents[1] / 'checks' / 'check_pipelines.py',
+                                 Path(__file__).resolve().parents[1] / 'tools' / 'check_pipelines.py')
+               if path.exists())
 
 
 def run_checker(target: Path) -> tuple[int, str]:
@@ -211,3 +216,63 @@ def test_unparseable_file_fails_closed(tmp_path):
     assert code == 1
     assert 'PIPE000' in report
     assert 'Traceback' not in report
+
+
+AT_WRITES = '''"""Cell writes on a name with no other evidence of being a frame."""
+
+
+def fill(table, rows, cells):
+    """Each write goes through an indexer only pandas objects have."""
+    copied = table.copy()
+    for row, column in rows:
+        copied.at[row, column] = 'yes'
+    for row, column in cells:
+        copied.iat[row, column] = 'no'
+    return copied
+'''
+
+
+def test_writes_through_at_and_iat_are_caught_without_other_evidence(tmp_path):
+    """.at and .iat exist only on pandas objects, so a write through them is in place."""
+    code, report = run_checker(write(tmp_path, 'cells.py', AT_WRITES))
+    assert code == 1
+    assert "'copied.at[...] = ...'" in report
+    assert "'copied.iat[...] = ...'" in report
+
+
+def test_a_write_through_loc_is_caught_on_a_name_known_only_by_it(tmp_path):
+    """A .loc write needs no frame method elsewhere to be recognised."""
+    body = 'def set_flag(table, where):\n    table.loc[where, "flag"] = 1\n    return table\n'
+    code, report = run_checker(write(tmp_path, 'loc.py', body))
+    assert code == 1
+    assert "'table.loc[...] = ...'" in report
+
+
+def test_reading_through_at_is_not_a_write(tmp_path):
+    """Only an assignment through the indexer is reported."""
+    body = 'def first(table):\n    return table.at[0, "x"]\n'
+    code, report = run_checker(write(tmp_path, 'read.py', body))
+    assert code == 0
+    assert 'PIPE003' not in report
+
+
+def test_a_file_that_is_not_python_is_warned_about_not_passed_over(tmp_path):
+    """A path the gate cannot read says so on stderr instead of passing silently."""
+    code, report = run_checker(write(tmp_path, 'fit.R', 'x <- 1\n'))
+    assert code == 0
+    assert 'WARNING' in report and 'fit.R is not a Python file' in report
+
+
+def test_a_folder_with_no_python_is_warned_about(tmp_path):
+    """A gated folder holding nothing to check is reported, so a wrong GATE_DIRS shows."""
+    (tmp_path / 'empty').mkdir()
+    code, report = run_checker(tmp_path / 'empty')
+    assert code == 0
+    assert 'holds no Python files' in report
+
+
+def test_a_path_that_does_not_exist_fails_closed(tmp_path):
+    """A misspelt path would otherwise gate nothing and pass."""
+    code, report = run_checker(tmp_path / 'nowhere')
+    assert code == 1
+    assert 'PIPE000' in report and 'does not exist' in report

@@ -44,6 +44,7 @@ df = df.head(10)
 - The same name on both sides of `=` more than once in a scope
 - `inplace=True` anywhere
 - `df["col"] = ...` instead of `.assign(col=...)`
+- `df.loc[...] = ...`, `df.at[...] = ...` or `df.iat[...] = ...`: a cell written in place
 - An intermediate name used exactly once
 
 **Verification**:

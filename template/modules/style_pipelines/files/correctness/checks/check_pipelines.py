@@ -7,7 +7,8 @@ Rules
 -----
 PIPE001  inline comment (advisory: reported, blocks only under --strict)
 PIPE002  sequential reassignment of one name instead of a pipe chain
-PIPE003  in-place column mutation instead of .assign()
+PIPE003  in-place column mutation instead of .assign(), including a write
+         through .loc, .iloc, .at or .iat, which only pandas objects have
 PIPE004  a stage writes an artifact without reporting shape first
 """
 
@@ -37,8 +38,9 @@ REPORTERS = {"report", "step", "note", "validate", "describe_change",
 FRAME_METHODS = {
     "pipe", "assign", "query", "groupby", "merge", "dropna", "drop_duplicates",
     "rename", "reset_index", "set_index", "sort_values", "fillna", "astype",
-    "head", "tail", "loc", "iloc", "to_parquet", "to_csv", "value_counts",
+    "head", "tail", "loc", "iloc", "at", "iat", "to_parquet", "to_csv", "value_counts",
 }
+INDEXERS = {"loc", "iloc", "at", "iat"}
 FRAME_READERS = {"read_parquet", "read_csv", "read_excel", "DataFrame", "concat"}
 
 
@@ -172,7 +174,12 @@ def find_inplace_mutation(path: Path, tree: ast.AST) -> list[Violation]:
                 if not isinstance(target, ast.Subscript):
                     continue
                 root = _attribute_root(target)
-                if root in frames:
+                indexer = (target.value.attr if isinstance(target.value, ast.Attribute)
+                           and target.value.attr in INDEXERS else None)
+                if indexer:
+                    found.append(Violation(path, node.lineno, "PIPE003",
+                                           f"'{root}.{indexer}[...] = ...' writes in place; use .assign()"))
+                elif root in frames:
                     found.append(Violation(path, node.lineno, "PIPE003",
                                            f"'{root}[...] = ...' mutates in place; use .assign()"))
     return sorted(found, key=lambda v: v.line)
@@ -208,12 +215,29 @@ def check_file(path: Path) -> list[Violation]:
             + find_unreported_writes(path, tree))
 
 
-def collect(paths: list[str]) -> list[Path]:
+def collect(paths: list[str]) -> tuple[list[Path], list[Violation]]:
+    """The Python files under the paths given, and a PIPE000 for each path that does not exist.
+
+    A path that is not a Python file, or a folder with none in it, is checked
+    for nothing, so it is warned about on stderr rather than passed over.
+    """
     out: list[Path] = []
+    missing: list[Violation] = []
     for raw in paths:
         p = Path(raw)
-        out.extend(sorted(p.rglob("*.py")) if p.is_dir() else [p])
-    return [p for p in out if p.suffix == ".py"]
+        if not p.exists():
+            missing.append(Violation(p, 0, "PIPE000", "path does not exist, so nothing in it was checked"))
+        elif p.is_dir():
+            found = sorted(p.rglob("*.py"))
+            if not found:
+                print(f"WARNING: {p} holds no Python files; the pipe gate checked nothing in it",
+                      file=sys.stderr)
+            out.extend(found)
+        elif p.suffix != ".py":
+            print(f"WARNING: {p} is not a Python file; the pipe gate does not check it", file=sys.stderr)
+        else:
+            out.append(p)
+    return out, missing
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -225,8 +249,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     selected = {c for c in args.select.split(",") if c} or None
-    findings = [v for p in collect(args.paths or ["src", "scripts"])
-                for v in check_file(p)
+    files, missing = collect(args.paths or ["src", "scripts"])
+    findings = [v for v in missing + [v for p in files for v in check_file(p)]
                 if selected is None or v.code in selected]
     blocking = ENFORCED | (ADVISORY if args.strict else set())
     violations = [v for v in findings if v.code in blocking]
