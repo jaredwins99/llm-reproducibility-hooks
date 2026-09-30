@@ -198,7 +198,7 @@ compose_module() {
         else
             echo "$content" > "$output_path"
         fi
-    done < <(find "$files_dir" -type f -print0)
+    done < <(find "$files_dir" -type f -not -path '*/__pycache__/*' -not -name '*.pyc' -print0)
 }
 
 # Add a conda package to the project's environment file(s) unless it is listed.
