@@ -136,6 +136,15 @@ def e_answers() -> dict:
     return out
 
 
+def all_prompts() -> dict:
+    """The exact E prompt per (topic, role, arm), from every pilot2 bundle."""
+    out: dict[str, dict] = {}
+    for bundle_path in sorted(WORK_DIR.glob("trial-*/bundle.json")):
+        b = json.loads(bundle_path.read_text())
+        out[f"{b.get('topic')}\u0000{b.get('role')}"] = b.get("e_prompts", {})
+    return out
+
+
 def model_pin(path: Path) -> dict:
     """Exact model IDs observed in the claude -p JSON envelopes, by stage kind."""
     rows = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
@@ -180,6 +189,7 @@ def main() -> None:
         "pilots": {name: analyze(path) for name, path in PILOTS.items()},
         "models": model_pin(PILOTS["pilot2"]),
         "e_answers": e_answers(),
+        "e_prompts": all_prompts(),
         "showcase_topic": "veganism",
         "showcase": showcase("veganism"),
         "topic_bank": [{"topic": t["topic"], "demand": t["demand"],

@@ -245,6 +245,16 @@ details.ans-role > summary .flipnote { font-size: 12.5px; color: var(--accent); 
   border: 1px solid var(--grid); border-radius: 8px;
   white-space: pre-wrap; font-size: 13px; line-height: 1.5; color: var(--text-secondary);
 }
+details.q { margin: 0 0 6px; }
+details.q > summary {
+  cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: var(--text-muted);
+  border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px;
+}
+details.q > summary::-webkit-details-marker { display: none; }
+details.q > summary::before { content: "\25B8"; font-size: 11px; display: inline-block; transition: transform 0.12s; }
+details.q[open] > summary::before { transform: rotate(90deg); }
+details.q .anstext { margin-top: 6px; border-style: dashed; }
 
 /* ---- control strips ---- */
 .strips .row { display: flex; align-items: center; gap: 10px; margin: 6px 0; flex-wrap: wrap; }
@@ -762,6 +772,15 @@ fetch("data.json").then(r => r.json()).then(data => {
         if (arms[arm] && arms[arm].retried) verdict.textContent += " (first call crashed; retry shown)";
         head.appendChild(verdict);
         block.appendChild(head);
+        const prompt = ((data.e_prompts || {})[topic + "\u0000" + c.role] || {})[arm];
+        if (prompt) {
+          const q = document.createElement("details"); q.className = "q";
+          const qs = document.createElement("summary");
+          qs.textContent = "the question, exactly as this arm was asked it";
+          const qt = document.createElement("div"); qt.className = "anstext";
+          qt.textContent = prompt.trim();
+          q.append(qs, qt); block.appendChild(q);
+        }
         const txt = document.createElement("div"); txt.className = "anstext";
         txt.textContent = arms[arm] ? arms[arm].text.trim()
           : "No response recorded — the trial failed before stage E (drift gate exhausted).";
