@@ -218,6 +218,16 @@ details.ans-topic > summary {
   cursor: pointer; padding: 10px 14px; font-weight: 600; font-size: 15px;
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
+details.ans-topic > summary::before, details.ans-role > summary::before,
+details.render > summary::before {
+  content: "\25B8"; color: var(--text-muted); font-size: 12px;
+  display: inline-block; transition: transform 0.12s;
+}
+details.ans-topic[open] > summary::before, details.ans-role[open] > summary::before,
+details.render[open] > summary::before { transform: rotate(90deg); }
+details.render > summary { list-style: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+details.ans-topic > summary::-webkit-details-marker, details.ans-role > summary::-webkit-details-marker,
+details.render > summary::-webkit-details-marker { display: none; }
 details.ans-topic > summary .meta { font-weight: 400; font-size: 13px; color: var(--text-muted); }
 details.ans-role { border-top: 1px solid var(--grid); margin: 0; }
 details.ans-role > summary {
