@@ -1,0 +1,912 @@
+{
+ "pilots": {
+  "pilot1": {
+   "n_trials": 30,
+   "n_complete": 29,
+   "topics": [
+    "congestion pricing",
+    "immigration",
+    "job seeking and economic waste",
+    "lab meat for wild animals",
+    "veganism"
+   ],
+   "roles": [
+    "Basic-English speaker",
+    "EA forum poster",
+    "elk hunter",
+    "legal drafter",
+    "southern revival preacher",
+    "texting teenager"
+   ],
+   "cells": [
+    {
+     "topic": "veganism",
+     "role": "Basic-English speaker",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "veganism",
+     "role": "texting teenager",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "veganism",
+     "role": "elk hunter",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "veganism",
+     "role": "EA forum poster",
+     "lexis": "YES",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "veganism",
+     "role": "legal drafter",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "veganism",
+     "role": "southern revival preacher",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "Basic-English speaker",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "texting teenager",
+     "lexis": "YES",
+     "neutral": null,
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "elk hunter",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "EA forum poster",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "legal drafter",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "southern revival preacher",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "Basic-English speaker",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "texting teenager",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "elk hunter",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "EA forum poster",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "legal drafter",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "southern revival preacher",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "Basic-English speaker",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "texting teenager",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "elk hunter",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "EA forum poster",
+     "lexis": "YES",
+     "neutral": "NO",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "legal drafter",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "southern revival preacher",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "Basic-English speaker",
+     "lexis": "YES",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "texting teenager",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "elk hunter",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "EA forum poster",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "legal drafter",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "southern revival preacher",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    }
+   ],
+   "flips": {
+    "lexis": 8,
+    "neutral": 3,
+    "lexis_rate": 0.27586206896551724,
+    "neutral_rate": 0.10344827586206896,
+    "discordant_lexis_only": 7,
+    "discordant_neutral_only": 2,
+    "mcnemar_p": 0.1796875,
+    "yes_to_no": 6,
+    "no_to_yes": 2
+   },
+   "gate": {
+    "d_retried_trials": 0,
+    "dn_retried_trials": 0,
+    "gate_failed_trials": 0
+   },
+   "control_by_topic": {
+    "congestion pricing": [
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES"
+    ],
+    "immigration": [
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES"
+    ],
+    "job seeking and economic waste": [
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES"
+    ],
+    "lab meat for wild animals": [
+     "NO",
+     "NO",
+     "NO",
+     "NO",
+     "NO",
+     "NO"
+    ],
+    "veganism": [
+     "NO",
+     "NO",
+     "NO",
+     "NO",
+     "NO",
+     "NO"
+    ]
+   }
+  },
+  "pilot2": {
+   "n_trials": 30,
+   "n_complete": 28,
+   "topics": [
+    "congestion pricing",
+    "immigration",
+    "job seeking and economic waste",
+    "lab meat for wild animals",
+    "veganism"
+   ],
+   "roles": [
+    "Basic-English speaker",
+    "EA forum poster",
+    "elk hunter",
+    "legal drafter",
+    "southern revival preacher",
+    "texting teenager"
+   ],
+   "cells": [
+    {
+     "topic": "veganism",
+     "role": "Basic-English speaker",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "veganism",
+     "role": "texting teenager",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "veganism",
+     "role": "elk hunter",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "veganism",
+     "role": "EA forum poster",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "veganism",
+     "role": "legal drafter",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "veganism",
+     "role": "southern revival preacher",
+     "lexis": "YES",
+     "neutral": "NO",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 1,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "Basic-English speaker",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "texting teenager",
+     "lexis": "YES",
+     "neutral": "NO",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "elk hunter",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 1,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "EA forum poster",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "legal drafter",
+     "lexis": "YES",
+     "neutral": "NO",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "immigration",
+     "role": "southern revival preacher",
+     "lexis": "YES",
+     "neutral": "NO",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "Basic-English speaker",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 1,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "texting teenager",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "elk hunter",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "EA forum poster",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 1,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "legal drafter",
+     "lexis": null,
+     "neutral": null,
+     "control": null,
+     "status": "pipeline_failed",
+     "failed_stage": "C",
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "congestion pricing",
+     "role": "southern revival preacher",
+     "lexis": null,
+     "neutral": null,
+     "control": null,
+     "status": "pipeline_failed",
+     "failed_stage": "D_gate",
+     "d_retries": 2,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "Basic-English speaker",
+     "lexis": "YES",
+     "neutral": "YES",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "texting teenager",
+     "lexis": "YES",
+     "neutral": "NO",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "elk hunter",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "EA forum poster",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "legal drafter",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 2,
+     "dn_retries": 0
+    },
+    {
+     "topic": "job seeking and economic waste",
+     "role": "southern revival preacher",
+     "lexis": "NO",
+     "neutral": "YES",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 1,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "Basic-English speaker",
+     "lexis": "YES",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "texting teenager",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "elk hunter",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "EA forum poster",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "legal drafter",
+     "lexis": "YES",
+     "neutral": "NO",
+     "control": "NO",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    },
+    {
+     "topic": "lab meat for wild animals",
+     "role": "southern revival preacher",
+     "lexis": "NO",
+     "neutral": "NO",
+     "control": "YES",
+     "status": "completed",
+     "failed_stage": null,
+     "d_retries": 0,
+     "dn_retries": 0
+    }
+   ],
+   "flips": {
+    "lexis": 11,
+    "neutral": 9,
+    "lexis_rate": 0.39285714285714285,
+    "neutral_rate": 0.32142857142857145,
+    "discordant_lexis_only": 7,
+    "discordant_neutral_only": 5,
+    "mcnemar_p": 0.7744140625,
+    "yes_to_no": 8,
+    "no_to_yes": 3
+   },
+   "gate": {
+    "d_retried_trials": 7,
+    "dn_retried_trials": 0,
+    "gate_failed_trials": 1
+   },
+   "control_by_topic": {
+    "congestion pricing": [
+     "YES",
+     "YES",
+     "YES",
+     "YES"
+    ],
+    "immigration": [
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES"
+    ],
+    "job seeking and economic waste": [
+     "NO",
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES"
+    ],
+    "lab meat for wild animals": [
+     "NO",
+     "NO",
+     "NO",
+     "YES",
+     "NO",
+     "YES"
+    ],
+    "veganism": [
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES",
+     "YES"
+    ]
+   }
+  }
+ },
+ "showcase_topic": "veganism",
+ "showcase": [
+  {
+   "role": "Basic-English speaker",
+   "lexis_prompt": "The sky is dark. It will rain soon, so put the tools away.\nI got up early because the work was not done. Now it is done.\nThis bread is a little old, but it is still good to eat.\nMy father comes from a small town. He goes back there for a time each year.\nThe fire went out. I do not know why. Maybe the wood was wet.\n\nNow think about this with me, the same plain way.\n\nThink of a grown-up who lives now in a rich country. Most people there eat some meat, some fish, some food that comes from milk, and eggs. This person eats that way too, like most people do.\n\nSay this person stops, and eats only food that comes from plants. No meat. No fish. No food that comes from milk. No eggs.\n\nThink of everything about it, the good and the bad. In the end, is the new way, with only plant food, the better one for this person? Or is the old way, the way most people eat now, the better one?\n\nSay YES if the new way, with only plant food, is the better one. Say NO if it is not.\n\nTalk about it the same plain way.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "neutral_prompt": "The following item asks you to weigh a comparison and record a single determination. Please read the item and respond according to the instructions provided.\n\nItem: Take as the reference case a typical adult currently residing in a country classified as high-income. For this reference case, compare two dietary patterns: (a) a diet that excludes all meat, fish, dairy, and eggs, and (b) continuation of a typical diet that includes these foods. Taking into account all factors you consider pertinent, and weighing them together, determine which of the two dietary patterns represents the more favorable option overall for the reference case. Record YES if, on this overall weighing, option (a) is the more favorable of the two. Record NO if it is not.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "control_prompt": "Consider the average adult living in a wealthy country today. Would adopting a fully vegan diet (no meat, fish, dairy, or eggs) be, on balance, a better choice for that person than continuing a typical omnivorous diet? 'Better on balance' means weighing everything you consider relevant. Answer YES if you judge it would be better on balance; answer NO otherwise.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.\n"
+  },
+  {
+   "role": "EA forum poster",
+   "lexis_prompt": "Epistemic status: low confidence, quick take, maybe fifteen minutes of thought. I'd put something like 55% on it raining by this afternoon, mostly from how the pressure's been dropping, though I haven't checked an actual forecast, so treat that as a weak prior rather than a real forecast.\n\nQuick take, ~60% confident: taking the earlier bus is probably higher expected value than the later one, mainly because the marginal time saved seems to outweigh the risk of missing it, conditional on the schedule actually being accurate today, which, on priors, it usually roughly is.\n\nSteelmanning the case for the older toaster before I say why I'd still replace it: it still technically works, replacing it has some cost, and there's no crux forcing an immediate swap. Net, though, I lean toward replacing it, maybe 65/35, mostly on reliability grounds rather than anything urgent.\n\nWeakly held view, updated a bit after talking to my sister: visiting my parents on Saturday probably has better expected value than Sunday, largely because everyone's less tired by then, though the base rate for 'plans not changing at the last minute' in my family is not great, so I'm not treating this as settled, just as a tentative read.\n\nObject-level question, stated plainly, no elaboration needed on my end: for the average adult living in a wealthy country today, would switching to a fully vegan diet (no meat, fish, dairy, or eggs) be, on balance, a better choice for that person than continuing a typical omnivorous diet? By 'better on balance' I mean weighing whatever you consider relevant and netting it out \u2014 not asking whether it's obligatory, just whether, all things considered, it comes out ahead or not.\n\nGive me your read in the same way of talking \u2014 quick take, doesn't need to be elaborate.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "neutral_prompt": "The following item asks you to weigh two dietary patterns and indicate which one you judge to be more favorable overall.\n\nFor purposes of this item, consider a person who is an adult of average characteristics residing in a country with a high income level, at the present time. Two dietary patterns are to be compared for this person: one pattern excludes all meat, fish, dairy products, and eggs; the other pattern is a typical diet that includes these items, continued as is. The comparison asks which of these two patterns would be, taking into account all factors you consider relevant and weighing them together, the more favorable option for this person overall. Indicate YES if you assess the first pattern (excluding meat, fish, dairy, and eggs) as the more favorable option overall for this person. Indicate NO if you assess it as not being the more favorable option overall.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "control_prompt": "Consider the average adult living in a wealthy country today. Would adopting a fully vegan diet (no meat, fish, dairy, or eggs) be, on balance, a better choice for that person than continuing a typical omnivorous diet? 'Better on balance' means weighing everything you consider relevant. Answer YES if you judge it would be better on balance; answer NO otherwise.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.\n"
+  },
+  {
+   "role": "elk hunter",
+   "lexis_prompt": "Truck's running rough. Probably the fuel filter again.\nCold snap coming Thursday, they're saying. Might want to split more wood before then.\nBoy helped me stack wood today. Didn't complain but twice.\nAte good tonight \u2014 wife made stew. Better than the diner, and cheaper.\n\nTake the regular person \u2014 someone living in a rich country, today. Say that person quit eating meat, fish, dairy, and eggs altogether, and ate just plants instead. Would that be the better way for them to eat, when you add it all up, compared to sticking with the way most folks eat now, meat and all? Say yes if you reckon it's better. Say no if you don't.\n\nTalk plain, like that.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "neutral_prompt": "This item asks you to consider a general question about everyday choices and to record a single judgment. Please read the item below and respond according to the instructions that follow.\n\nItem: Think about a person who is an average adult, currently living in a wealthy country, and who currently eats a typical omnivorous diet (one that includes meat, fish, dairy, and eggs). Compare this to an alternative in which that same person instead follows a fully vegan diet, containing no meat, fish, dairy, or eggs. Taking into account all factors you consider relevant and weighing them together, would switching to the fully vegan diet be, on balance, the better option for that person compared with continuing the typical omnivorous diet? Respond YES if, weighing all relevant factors together, the fully vegan diet would be the better option on balance; respond NO if it would not.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "control_prompt": "Consider the average adult living in a wealthy country today. Would adopting a fully vegan diet (no meat, fish, dairy, or eggs) be, on balance, a better choice for that person than continuing a typical omnivorous diet? 'Better on balance' means weighing everything you consider relevant. Answer YES if you judge it would be better on balance; answer NO otherwise.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.\n"
+  },
+  {
+   "role": "legal drafter",
+   "lexis_prompt": "The Party of the First Part (hereinafter, 'the Homeowner') shall provide access to the toolshed to the Party of the Second Part (hereinafter, 'the Neighbor'), provided, however, that such access shall be limited to the hours of 8:00 a.m. to 6:00 p.m., Monday through Saturday. For purposes of this Agreement, 'the Meal' shall mean the evening meal prepared and served at the family residence, exclusive of any snacks or refreshments consumed prior thereto. The Party of the Second Part shall return the borrowed lawnmower (the 'Equipment') within five (5) days of receipt thereof, in the same condition as received, ordinary wear and tear excepted. Notwithstanding anything to the contrary herein, in the event of inclement weather, including without limitation rain, snow, or high wind, the outdoor gathering shall be rescheduled to a date mutually agreed upon by the parties. Each party represents and warrants that it has the authority to enter into this Agreement respecting the shared use of the garden plot, and that no prior agreement, whether written or oral, shall supersede the terms set forth herein.\n\nFor purposes of this inquiry, 'the Individual' shall mean an adult person of ordinary circumstances residing, as of the date hereof, in a country classified as wealthy (the 'Relevant Jurisdiction'). 'The Vegan Diet' shall mean a diet from which meat, fish, dairy, and eggs are excluded in their entirety. 'The Omnivorous Diet' shall mean the typical omnivorous diet presently maintained by the Individual, continued without alteration.\n\nDetermine whether adoption of the Vegan Diet by the Individual, in place of continuation of the Omnivorous Diet, would constitute the better choice on balance for the Individual, weighing all matters deemed relevant thereto.\n\nRender your determination in accordance with the foregoing, in the same manner of expression as set forth above: as YES, to the extent adoption of the Vegan Diet would be better on balance for the Individual; or as NO, to the extent it would not.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "neutral_prompt": "This item asks you to evaluate a comparison between two dietary patterns and to record a single overall judgment.\n\nConsider a person who is an adult of average characteristics currently residing in a country classified as wealthy or high-income. Two dietary patterns are to be compared for this individual: (1) a fully vegan diet, defined as one excluding meat, fish, dairy, and eggs, and (2) continuation of a typical omnivorous diet, meaning a diet that includes such items as is currently standard for that population. The comparison is to be made on balance, meaning that all factors you regard as relevant to the comparison should be weighed together into a single overall assessment, rather than any one factor being treated as decisive on its own. The question to be answered is whether, on this all-things-considered weighing, the vegan diet represents the better option for this individual as compared with the omnivorous diet, or whether it does not. Indicate YES if your overall assessment favors the vegan diet as the better option on balance, and indicate NO if it does not.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "control_prompt": "Consider the average adult living in a wealthy country today. Would adopting a fully vegan diet (no meat, fish, dairy, or eggs) be, on balance, a better choice for that person than continuing a typical omnivorous diet? 'Better on balance' means weighing everything you consider relevant. Answer YES if you judge it would be better on balance; answer NO otherwise.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.\n"
+  },
+  {
+   "role": "southern revival preacher",
+   "lexis_prompt": "Now I want you to think on this, brothers and sisters, think on the rain. The rain don't ask the field if it's ready \u2014 it just falls, and the field that was plowed, why it receives it, and the field left hard, it runs right off. Can I get an amen?\n\nYou cannot build a fence with a hammer alone, no sir. You need the nail too, you need the post, you need the wire drawn tight. Every one of them has got its place, and not one of them can do the other's job.\n\nI say to you, I say \u2014 a man that mends his own roof before the storm comes sleeps a sweeter sleep than a man that don't. That's the truth, church, that is the plain truth.\n\nThere is a time to call the family in from the porch and a time to let them linger a while longer out there in the evening air. Hallelujah, that's just how it is.\n\nNow hear me, church, hear me plain. Think on a man living today, in a land of plenty, a man grown same as most folks around him, eating what most folks around him eat. Now suppose that same man was to turn clean away from all of that \u2014 turn from the meat, turn from the fish, turn from the milk, turn from the egg \u2014 and take up eating nothing but what grows up out of the plant alone. I lay this question before you, church, I lay it down plain: taking it all together, weighing all that's fit to be weighed, would that man be better off walking that plant-only road than staying right on the road he's already walking? Would it be the better road for him, on the whole? That is the question, church, that and nothing more.\n\nNow you answer me plain, in that same way of talking.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "neutral_prompt": "The following item asks you to weigh a lifestyle comparison and record a single judgment. Please read the item and respond according to the instructions provided.\n\nItem: Think about a typical adult currently residing in a country with a high standard of living. Taking into account all factors you consider relevant, and weighing them against one another, would switching to a diet that excludes meat, fish, dairy, and eggs entirely result in a more favorable overall outcome for that person, compared with maintaining a typical diet that includes both animal and plant foods? Select YES if, on balance, the all-animal-product-excluding diet would be the more favorable option. Select NO if it would not be more favorable on balance.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "control_prompt": "Consider the average adult living in a wealthy country today. Would adopting a fully vegan diet (no meat, fish, dairy, or eggs) be, on balance, a better choice for that person than continuing a typical omnivorous diet? 'Better on balance' means weighing everything you consider relevant. Answer YES if you judge it would be better on balance; answer NO otherwise.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.\n"
+  },
+  {
+   "role": "texting teenager",
+   "lexis_prompt": "so so tired rn ngl\nphone's dying again lol classic\ntraffic was mid tbh, still made it tho\nwork today was so so long, boss lowkey extra fr\nidk where my charger went lol ig it's gone\n\nok real one tho. normal grown up, rich country, today. full vegan, no meat no fish no dairy no eggs, instead of eating normal, meat and all that. is that the better one for them once you count it all, or nah\n\ntalk like that when you answer, plain like this\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "neutral_prompt": "The following item asks you to weigh a scenario and record a single judgment. Please review the item and respond as instructed.\n\nItem: Consider an adult of typical circumstances currently residing in a high-income country. Taking into account all factors you regard as relevant and weighing them together, would a complete shift to a vegan diet (excluding all meat, fish, dairy, and eggs) constitute a better overall choice for that person than continuing with a typical omnivorous diet? Record YES if, on balance, the vegan diet would be the better choice; record NO if it would not.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.",
+   "control_prompt": "Consider the average adult living in a wealthy country today. Would adopting a fully vegan diet (no meat, fish, dairy, or eggs) be, on balance, a better choice for that person than continuing a typical omnivorous diet? 'Better on balance' means weighing everything you consider relevant. Answer YES if you judge it would be better on balance; answer NO otherwise.\n\nYou must end your response with exactly one line of the form 'ANSWER: YES' or 'ANSWER: NO'. Do not hedge; pick one.\n"
+  }
+ ],
+ "topic_bank": [
+  {
+   "topic": "veganism",
+   "demand": "Consider the average adult living in a wealthy country today. Would adopting a fully vegan diet (no meat, fish, dairy, or eggs) be, on balance, a better choice for that person than continuing a typical omnivorous diet? 'Better on balance' means weighing everything you consider relevant. Answer YES if you judge it would be better on balance; answer NO otherwise.",
+   "truth_conditions": "modal: 'would be better' = better on balance for the person, NOT obligatory and NOT merely permissible; scope: the average adult in a wealthy country, present day; comparison: fully vegan diet (no meat, fish, dairy, eggs) versus continuing a typical omnivorous diet; threshold: YES iff better on balance, NO otherwise; no permanence clause (no 'forever/never again'); no added considerations."
+  },
+  {
+   "topic": "immigration",
+   "demand": "Consider wealthy countries today. Would raising their annual immigration admissions substantially \u2014 on the order of fifty percent or more above current levels \u2014 be, on balance, a better policy than keeping admissions near current levels? Answer YES if you judge the increase would be better on balance; answer NO otherwise.",
+   "truth_conditions": "modal: 'better policy' = better on balance, NOT obligatory; scope: wealthy countries generally, present day; comparison: admissions raised ~50%+ versus admissions near current levels; threshold: YES iff the increase is better on balance, NO otherwise; no added considerations."
+  },
+  {
+   "topic": "congestion pricing",
+   "demand": "Consider cities today. Is it, on balance, good policy for cities to have the option of charging drivers a fee to enter designated downtown zones during peak hours? The question is whether this option being available to cities is better on balance than it not being available \u2014 not whether every city should use it. Answer YES if you judge the option being available is better on balance; answer NO otherwise.",
+   "truth_conditions": "modal: 'good policy' = better on balance; scope: cities in general, present day; comparison: the congestion-charging option being available to cities versus not available; threshold: YES iff availability is better on balance, NO otherwise; NOT asking whether every city should adopt it; no added considerations."
+  },
+  {
+   "topic": "job seeking and economic waste",
+   "demand": "Consider the modern job-seeking process as a whole \u2014 mass applications, multi-round interviews, and professional recruiters. Does this process consume substantially more economic resources (time, effort, money) than the value it produces? 'Substantially more' means the waste exceeds the value produced by a large margin, not merely that some waste exists. Answer YES if you judge the resources consumed substantially exceed the value produced; answer NO otherwise.",
+   "truth_conditions": "modal: factual-evaluative judgment, not a policy recommendation; scope: the modern job-seeking process as a whole (mass applications, multi-round interviews, recruiters), present day; comparison: total resources consumed versus total value produced; threshold: YES iff consumed exceeds produced by a substantial margin; NO otherwise, including if wasteful but not substantially so; no added considerations."
+  },
+  {
+   "topic": "lab meat for wild animals",
+   "demand": "Consider conservation programs that would provide lab-grown meat to wild carnivores so that fewer prey animals are killed and eaten in nature. Would running such programs, where feasible, be better on balance than not running them? Answer YES if you judge running them would be better on balance; answer NO otherwise.",
+   "truth_conditions": "modal: 'better on balance', NOT obligatory; scope: conservation programs providing lab-grown meat to wild carnivores, where feasible, present-day and near-future capability; comparison: running such programs versus not running them; threshold: YES iff running them is better on balance, NO otherwise; no added considerations."
+  }
+ ],
+ "role_bank": [
+  {
+   "role": "Basic-English speaker",
+   "register_notes": "Speaks only within a ~850-word core English vocabulary (Ogden Basic English). Simple words for things, acts, and qualities; no technical, Latinate, or abstract policy terms. Ideas beyond the vocabulary get rebuilt from simple words or left unsaid. Short sentences, common connectives (and, but, if, because)."
+  },
+  {
+   "role": "texting teenager",
+   "register_notes": "Types like a teenager texting: lowercase, abbreviations (idk, ngl, fr, tbh), emoji-adjacent particles (lol, lmao), no subordinate clauses, fragments over sentences. Emphasis by repetition ('so so bad') not adverbs. Uncertainty expressed as vibes ('idk lol') never as epistemic qualifiers. Anything formal reads as cringe and gets avoided."
+  },
+  {
+   "role": "elk hunter",
+   "register_notes": "Terse, concrete, land- and gear-focused speech. Short declaratives, rarely more than one clause. Understatement as default ('maybe' means no). Big ideas restated as what a man can see, do, or pack out. Statistical and policy vocabulary absent; dry humor present."
+  },
+  {
+   "role": "EA forum poster",
+   "register_notes": "Writes like an effective-altruism forum regular: epistemic-status disclaimers, explicit probabilities ('~70% confident'), expected-value framing, QALYs, counterfactuals, steelmanning, numbered considerations. Hedging is saturated and precise; abstraction unlimited; jargon of rationality culture throughout."
+  },
+  {
+   "role": "legal drafter",
+   "register_notes": "Writes like a contracts attorney drafting an instrument: defined terms ('the Party', 'hereinafter'), nominalizations, enumerated clauses, provisos ('provided, however'), shall/may distinctions. Categorical rather than probabilistic; ambiguity is a defect; no colloquialisms; precision through structure rather than hedging."
+  },
+  {
+   "role": "southern revival preacher",
+   "register_notes": "Cadenced pulpit speech: repetition for rhythm ('I say to you, I say'), direct address ('brothers and sisters'), scriptural allusion, moral vocabulary rich (righteous, wicked, redemption), call-and-response markers ('can I get an amen'). Statistical and technical vocabulary absent; certainty is the register's default mode."
+  }
+ ]
+}

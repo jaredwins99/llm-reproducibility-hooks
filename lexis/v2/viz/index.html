@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lexis</title>
+<style>
+:root {
+  color-scheme: light;
+  --page:           #f9f9f7;
+  --surface-1:      #fcfcfb;
+  --text-primary:   #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted:     #898781;
+  --grid:           #e1e0d9;
+  --baseline:       #c3c2b7;
+  --border:         rgba(11,11,11,0.10);
+  --yes:            #2a78d6;  /* categorical slot 1: answer YES */
+  --no:             #eb6834;  /* categorical slot 2: answer NO  */
+  --accent:         #2a78d6;
+  --wash:           rgba(42,120,214,0.07);
+  --fail:           #898781;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page:           #0d0d0d;
+    --surface-1:      #1a1a19;
+    --text-primary:   #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --grid:           #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --yes:            #3987e5;
+    --no:             #d95926;
+    --accent:         #3987e5;
+    --wash:           rgba(57,135,229,0.10);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page:           #0d0d0d;
+  --surface-1:      #1a1a19;
+  --text-primary:   #f0efec;
+  --text-secondary: #c3c2b7;
+  --text-muted:     #898781;
+  --grid:           #2c2c2a;
+  --baseline:       #383835;
+  --border:         rgba(255,255,255,0.10);
+  --yes:            #3987e5;
+  --no:             #d95926;
+  --accent:         #3987e5;
+  --wash:           rgba(57,135,229,0.10);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--page); color: var(--text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px; line-height: 1.55;
+}
+main { max-width: 980px; margin: 0 auto; padding: 32px 16px 80px; }
+h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 20px; margin: 48px 0 8px; }
+h3 { font-size: 16px; margin: 24px 0 6px; }
+p  { color: var(--text-secondary); margin: 8px 0; max-width: 72ch; }
+p strong, li strong { color: var(--text-primary); }
+.sub { color: var(--text-muted); font-size: 14px; margin-top: 0; }
+.card {
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; margin: 12px 0;
+}
+a { color: var(--accent); }
+
+/* ---- role cards ---- */
+.rolegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; }
+.rolecard { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.rolecard h4 { margin: 0 0 4px; font-size: 15px; }
+.rolecard .why { color: var(--text-muted); font-size: 13px; margin: 0 0 6px; }
+.rolecard p { font-size: 14px; margin: 0; }
+
+/* ---- pipeline ---- */
+.pipe { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin: 12px 0; }
+.pipe .stage {
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; flex: 1 1 150px; min-width: 150px;
+}
+.pipe .stage b { display: block; font-size: 14px; }
+.pipe .stage span { font-size: 13px; color: var(--text-secondary); }
+.pipe .arrow { align-self: center; color: var(--text-muted); font-size: 18px; }
+
+/* ---- stat tiles ---- */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; }
+.tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.tile .label { font-size: 13px; color: var(--text-secondary); }
+.tile .value { font-size: 30px; font-weight: 600; margin-top: 2px; }
+.tile .note  { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+
+/* ---- bar chart ---- */
+.chart-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 12px 0; }
+.chart-card h3 { margin: 0 0 2px; }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--text-secondary); margin: 6px 0 2px; flex-wrap: wrap; }
+.legend .key { display: inline-flex; align-items: center; gap: 6px; }
+.legend .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+/* ---- matrix ---- */
+.matrix-wrap { overflow-x: auto; }
+table.matrix { border-collapse: collapse; min-width: 640px; width: 100%; font-size: 13px; }
+table.matrix th { color: var(--text-secondary); font-weight: 500; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
+table.matrix th.topic { text-align: center; }
+table.matrix td { padding: 5px 8px; border-bottom: 1px solid var(--grid); }
+table.matrix td.role { white-space: nowrap; color: var(--text-primary); }
+.cell { display: inline-flex; gap: 2px; padding: 4px; border-radius: 6px; cursor: default; }
+.cell.flip { background: var(--wash); outline: 1px solid var(--accent); }
+.cell.failed { opacity: 0.55; }
+.chip {
+  width: 22px; height: 22px; border-radius: 4px; display: inline-flex;
+  align-items: center; justify-content: center;
+  color: #fff; font-size: 11.5px; font-weight: 600;
+}
+.chip.Y { background: var(--yes); }
+.chip.N { background: var(--no); }
+.chip.X { background: transparent; color: var(--text-muted); border: 1px solid var(--baseline); }
+.axisnote { font-size: 12.5px; color: var(--text-muted); margin-top: 6px; }
+
+/* ---- control strips ---- */
+.strips .row { display: flex; align-items: center; gap: 10px; margin: 6px 0; flex-wrap: wrap; }
+.strips .name { width: 240px; font-size: 14px; color: var(--text-primary); }
+.strips .chips { display: flex; gap: 2px; }
+.strips .verdict { font-size: 13px; color: var(--text-muted); }
+
+/* ---- showcase ---- */
+details.render { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; margin: 8px 0; }
+details.render summary { cursor: pointer; padding: 12px 16px; font-weight: 600; font-size: 15px; }
+details.render summary .ans { font-weight: 500; font-size: 13px; color: var(--text-secondary); margin-left: 8px; }
+details.render pre {
+  margin: 0 16px 14px; padding: 12px; background: var(--page);
+  border: 1px solid var(--grid); border-radius: 8px;
+  white-space: pre-wrap; font-size: 13px; line-height: 1.5; color: var(--text-secondary);
+  font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
+}
+
+/* ---- tooltip ---- */
+#tip {
+  position: fixed; z-index: 10; pointer-events: none; display: none;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  max-width: 280px;
+}
+#tip .t-title { font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+#tip .t-row { display: flex; justify-content: space-between; gap: 14px; color: var(--text-secondary); }
+#tip .t-row b { color: var(--text-primary); font-weight: 600; }
+
+footer { margin-top: 56px; font-size: 13px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<main class="viz-root">
+  <h1>Lexis</h1>
+  <p class="sub">Does the linguistic repertoire a question lives in change the answer a model gives?</p>
+
+  <h2 id="why">Why is there more than one lexis?</h2>
+  <p>A <strong>lexis</strong>, as this project uses the word, is a <strong>bounded repertoire</strong>: the
+  set of things a speaker <em>can</em> say, defined mostly by what they <em>cannot</em> — vocabulary that
+  isn't available, abstraction that has no words, hedges that don't exist, syntax that never gets used.
+  This is Basil Bernstein's distinction between <strong>restricted and elaborated codes</strong>: not slang
+  layered on top of a shared language, but genuinely different envelopes of expressible meaning.</p>
+  <p>Multiple lexes aren't an artifact of this experiment — they are the natural state of language,
+  because every speech community's repertoire is shaped by different pressures:</p>
+  <div class="rolegrid" id="rolegrid"></div>
+  <p>Each of these registers is produced by its community's constraints, not by anyone's opinion on any
+  topic. That independence is the experimental lever: if the <em>same question</em>, pinned to the same
+  truth conditions, gets a different answer when asked from inside different repertoires, then the
+  repertoire itself — not the content — moved the answer.</p>
+
+  <h3>One demand, six repertoires</h3>
+  <p>The veganism demand ("would a fully vegan diet be, on balance, better…"), rendered by the translator
+  into each lexis in pilot 2. The respondent is never told the register's rules — the rendering's
+  off-topic examples are its only teacher. Expand to read:</p>
+  <div id="showcase"></div>
+
+  <h2 id="design">How a trial works</h2>
+  <div class="pipe">
+    <div class="stage"><b>A — demand</b><span>a topic's question with pinned truth conditions (modal, decision rule, scope, comparison)</span></div>
+    <div class="arrow">→</div>
+    <div class="stage"><b>B — role</b><span>a speech community; never sees the topic</span></div>
+    <div class="arrow">→</div>
+    <div class="stage"><b>C — lexis</b><span>the role's bounded repertoire; never sees the topic</span></div>
+    <div class="arrow">→</div>
+    <div class="stage"><b>D — translate</b><span>renders the demand into the lexis; a haiku <b>drift gate</b> checks it against the truth conditions, up to 2 retries</span></div>
+    <div class="arrow">→</div>
+    <div class="stage"><b>E — respond</b><span>fresh model answers YES/NO; one call per arm</span></div>
+  </div>
+  <p>Three paired arms per trial: <strong>lexis</strong> (the gated rendering), <strong>neutral</strong>
+  (the same demand thoroughly reworded into a bland institutional register, also gated), and
+  <strong>control</strong> (the bare demand). A flip = that arm's answer differs from control
+  in the same trial.</p>
+
+  <h2 id="results">Pilot 2 results <span style="font-weight:400;font-size:14px;color:var(--text-muted)">(drift-gated, 5 topics × 6 roles)</span></h2>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="chart-card">
+    <h3>Flip rate vs control, by arm</h3>
+    <p class="sub">Pilot 1 translations drifted semantically; pilot 2 pins truth conditions and gates every rendering.</p>
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--yes)"></span>lexis arm</span>
+      <span class="key"><span class="swatch" style="background:var(--no)"></span>neutral rewording arm</span>
+    </div>
+    <div id="flipchart"></div>
+  </div>
+
+  <div class="chart-card">
+    <h3>Answers by topic × role</h3>
+    <p class="sub">Each cell: lexis / neutral / control answer. Highlighted cells are lexis-vs-control flips; hover or tap a cell for detail.</p>
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--yes)"></span>YES</span>
+      <span class="key"><span class="swatch" style="background:var(--no)"></span>NO</span>
+      <span class="key"><span class="swatch" style="border:1px solid var(--baseline)"></span>no answer (gate failed)</span>
+      <span class="key"><span class="swatch" style="background:var(--wash);outline:1px solid var(--accent)"></span>lexis flip</span>
+    </div>
+    <div class="matrix-wrap"><table class="matrix" id="matrix"></table></div>
+    <p class="axisnote">Order inside each cell: <b>L</b>exis · <b>N</b>eutral · <b>C</b>ontrol.</p>
+  </div>
+
+  <div class="chart-card">
+    <h3>Is the control even stable?</h3>
+    <p class="sub">The control prompt is byte-identical within a topic — six runs, six roles. Any variation here is pure sampling noise in the respondent.</p>
+    <div class="strips" id="strips"></div>
+  </div>
+
+  <h2 id="findings">What pilot 2 actually found</h2>
+  <div class="card">
+    <p><strong>1 — The register effect did not survive the drift gate.</strong> With semantics pinned,
+    plain rewording flips answers almost as often as the lexis does (McNemar
+    <span id="p-inline"></span>). Pilot 1's apparent lexis effect was carried largely by semantic drift —
+    the translator adding considerations, intensifiers, and modal shifts — which the gate now removes
+    (it forced retries on <span id="gate-inline"></span> lexis renderings, and zero neutral ones).</p>
+    <p><strong>2 — Our own precisification was a treatment.</strong> Rewriting "should the average adult
+    go vegan" as "would it be, on balance, a better choice" flipped the model's baseline from NO to
+    YES. A chunk of what reads as a model's "stance" lives in the question's ambiguity, and there is
+    no neutral way to remove that ambiguity.</p>
+    <p><strong>3 — Pinned demands sit nearer the decision boundary.</strong> The lab-meat control went
+    N N N Y N Y across byte-identical prompts. Near the boundary, single-draw flips conflate noise with
+    effect — the next step is replaying the frozen per-trial bundles ~5× per arm and testing arm effects
+    on flip <em>probabilities</em> instead of single flips.</p>
+  </div>
+
+  <footer>
+    Data: <code>lexis/results/pilot1.jsonl</code> · <code>lexis/v2/results/pilot2.jsonl</code> —
+    rebuilt by <code>build_data.py</code>. Harness: <code>lexis/harness/</code> (fresh-context
+    <code>claude&nbsp;-p</code> per stage, model versions audited per call).
+  </footer>
+</main>
+
+<div id="tip" role="status"></div>
+
+<script>
+const ROLE_WHY = {
+  "Basic-English speaker": "Acquisition — a second-language speaker's working vocabulary is small by necessity; abstraction must be rebuilt from simple words.",
+  "texting teenager": "Channel — thumbs and screens compress everything; hedging and subordinate clauses are the first casualties.",
+  "elk hunter": "Trade — talk built around concrete, observable things; abstraction is suspect, brevity is competence.",
+  "EA forum poster": "Epistemic norms — a community that rewards quantification, explicit hedging, and decomposed considerations.",
+  "legal drafter": "Precision — ambiguity is a professional hazard, so the repertoire bans it at the cost of naturalness.",
+  "southern revival preacher": "Oral performance — meaning rides cadence, repetition, and concrete imagery; the register exists to be heard, not read.",
+};
+
+const tip = document.getElementById("tip");
+function showTip(evt, title, rows) {
+  tip.replaceChildren();
+  const t = document.createElement("div"); t.className = "t-title"; t.textContent = title;
+  tip.appendChild(t);
+  for (const [label, value] of rows) {
+    const r = document.createElement("div"); r.className = "t-row";
+    const l = document.createElement("span"); l.textContent = label;
+    const v = document.createElement("b"); v.textContent = value;
+    r.append(l, v); tip.appendChild(r);
+  }
+  tip.style.display = "block";
+  const pad = 12, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = evt.clientX + pad, y = evt.clientY + pad;
+  if (x + w > innerWidth - 8) x = evt.clientX - w - pad;
+  if (y + h > innerHeight - 8) y = evt.clientY - h - pad;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+function hideTip() { tip.style.display = "none"; }
+
+fetch("data.json").then(r => r.json()).then(data => {
+  const p2 = data.pilots.pilot2, p1 = data.pilots.pilot1;
+
+  // --- role cards ---
+  const rg = document.getElementById("rolegrid");
+  for (const r of data.role_bank) {
+    const card = document.createElement("div"); card.className = "rolecard";
+    const h = document.createElement("h4"); h.textContent = r.role;
+    const why = document.createElement("p"); why.className = "why";
+    why.textContent = (ROLE_WHY[r.role] || "").split(" — ")[0] || "Community";
+    const p = document.createElement("p");
+    p.textContent = (ROLE_WHY[r.role] || r.register_notes || "").split(" — ").slice(1).join(" — ") || r.register_notes || "";
+    card.append(h, why, p); rg.appendChild(card);
+  }
+
+  // --- showcase ---
+  const answersByRole = {};
+  for (const c of p2.cells) if (c.topic === data.showcase_topic) answersByRole[c.role] = c;
+  const sc = document.getElementById("showcase");
+  data.showcase.forEach((s, i) => {
+    const det = document.createElement("details"); det.className = "render";
+    if (i === 0) det.open = true;
+    const sum = document.createElement("summary"); sum.textContent = s.role;
+    const a = answersByRole[s.role];
+    if (a) {
+      const ans = document.createElement("span"); ans.className = "ans";
+      ans.textContent = `answers — lexis: ${a.lexis ?? "—"} · neutral: ${a.neutral ?? "—"} · control: ${a.control ?? "—"}`;
+      sum.appendChild(ans);
+    }
+    const pre = document.createElement("pre"); pre.textContent = s.lexis_prompt || "(missing)";
+    det.append(sum, pre); sc.appendChild(det);
+  });
+
+  // --- KPI tiles ---
+  const fmtPct = x => (100 * x).toFixed(0) + "%";
+  const kpis = [
+    ["Lexis flip rate", fmtPct(p2.flips.lexis_rate), `${p2.flips.lexis} of ${p2.n_complete} trials`],
+    ["Neutral flip rate", fmtPct(p2.flips.neutral_rate), `${p2.flips.neutral} of ${p2.n_complete} trials`],
+    ["McNemar exact p", p2.flips.mcnemar_p.toFixed(2), `lexis vs neutral, discordant ${p2.flips.discordant_lexis_only}:${p2.flips.discordant_neutral_only}`],
+    ["Gate caught drift", `${p2.gate.d_retried_trials}/${p2.n_trials}`, "lexis renderings retried; 0 neutral"],
+    ["Gate-failed trials", String(p2.gate.gate_failed_trials), "rendering never passed after 2 retries"],
+  ];
+  const kp = document.getElementById("kpis");
+  for (const [label, value, note] of kpis) {
+    const t = document.createElement("div"); t.className = "tile";
+    const l = document.createElement("div"); l.className = "label"; l.textContent = label;
+    const v = document.createElement("div"); v.className = "value"; v.textContent = value;
+    const n = document.createElement("div"); n.className = "note"; n.textContent = note;
+    t.append(l, v, n); kp.appendChild(t);
+  }
+  document.getElementById("p-inline").textContent = `p = ${p2.flips.mcnemar_p.toFixed(2)}`;
+  document.getElementById("gate-inline").textContent = `${p2.gate.d_retried_trials} of ${p2.n_trials}`;
+
+  // --- grouped bar chart (SVG) ---
+  const groups = [
+    { name: "Pilot 1 — unguarded translations", lexis: p1.flips.lexis_rate, neutral: p1.flips.neutral_rate, n: p1.n_complete },
+    { name: "Pilot 2 — pinned + drift-gated", lexis: p2.flips.lexis_rate, neutral: p2.flips.neutral_rate, n: p2.n_complete },
+  ];
+  const css = getComputedStyle(document.body);
+  const W = Math.min(900, document.querySelector("main").clientWidth - 32), H = 230;
+  const m = { l: 44, r: 12, t: 10, b: 40 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const ymax = 0.5;
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("width", "100%"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Flip rates versus control by arm and pilot");
+  const y = v => m.t + ph - (v / ymax) * ph;
+  // gridlines + ticks
+  for (const v of [0, 0.1, 0.2, 0.3, 0.4, 0.5]) {
+    const line = document.createElementNS(svgNS, "line");
+    line.setAttribute("x1", m.l); line.setAttribute("x2", W - m.r);
+    line.setAttribute("y1", y(v)); line.setAttribute("y2", y(v));
+    line.setAttribute("stroke", v === 0 ? css.getPropertyValue("--baseline") : css.getPropertyValue("--grid"));
+    line.setAttribute("stroke-width", "1");
+    svg.appendChild(line);
+    const t = document.createElementNS(svgNS, "text");
+    t.setAttribute("x", m.l - 8); t.setAttribute("y", y(v) + 4);
+    t.setAttribute("text-anchor", "end"); t.setAttribute("font-size", "11.5");
+    t.setAttribute("fill", css.getPropertyValue("--text-muted"));
+    t.textContent = (v * 100) + "%";
+    svg.appendChild(t);
+  }
+  const groupW = pw / groups.length, barW = 24, gap = 12;
+  groups.forEach((g, gi) => {
+    const cx = m.l + groupW * gi + groupW / 2;
+    [["lexis", g.lexis, "--yes"], ["neutral", g.neutral, "--no"]].forEach(([arm, val, tok], si) => {
+      const x = cx - barW - gap / 2 + si * (barW + gap);
+      const barH = Math.max(0, (val / ymax) * ph);
+      const r = 4;
+      const path = document.createElementNS(svgNS, "path");
+      const top = y(val), bot = y(0);
+      path.setAttribute("d",
+        `M ${x} ${bot} L ${x} ${top + r} Q ${x} ${top} ${x + r} ${top} ` +
+        `L ${x + barW - r} ${top} Q ${x + barW} ${top} ${x + barW} ${top + r} L ${x + barW} ${bot} Z`);
+      path.setAttribute("fill", css.getPropertyValue(tok));
+      path.style.cursor = "default";
+      const pct = (100 * val).toFixed(1) + "%";
+      path.addEventListener("pointermove", e => showTip(e, g.name, [
+        [arm + " arm", pct],
+        ["trials", String(g.n)],
+      ]));
+      path.addEventListener("pointerleave", hideTip);
+      svg.appendChild(path);
+      const lab = document.createElementNS(svgNS, "text");
+      lab.setAttribute("x", x + barW / 2); lab.setAttribute("y", top - 6);
+      lab.setAttribute("text-anchor", "middle"); lab.setAttribute("font-size", "12");
+      lab.setAttribute("font-weight", "600");
+      lab.setAttribute("fill", css.getPropertyValue("--text-primary"));
+      lab.textContent = (100 * val).toFixed(0) + "%";
+      svg.appendChild(lab);
+    });
+    const name = document.createElementNS(svgNS, "text");
+    name.setAttribute("x", cx); name.setAttribute("y", H - 20);
+    name.setAttribute("text-anchor", "middle"); name.setAttribute("font-size", "12.5");
+    name.setAttribute("fill", css.getPropertyValue("--text-secondary"));
+    name.textContent = g.name.split(" — ")[0];
+    svg.appendChild(name);
+    const sub = document.createElementNS(svgNS, "text");
+    sub.setAttribute("x", cx); sub.setAttribute("y", H - 5);
+    sub.setAttribute("text-anchor", "middle"); sub.setAttribute("font-size", "11");
+    sub.setAttribute("fill", css.getPropertyValue("--text-muted"));
+    sub.textContent = g.name.split(" — ")[1] + ` (n=${g.n})`;
+    svg.appendChild(sub);
+  });
+  document.getElementById("flipchart").appendChild(svg);
+
+  // --- matrix ---
+  const table = document.getElementById("matrix");
+  const cellsBy = {};
+  for (const c of p2.cells) cellsBy[c.topic + "\u0000" + c.role] = c;
+  const thead = document.createElement("thead");
+  const hr = document.createElement("tr");
+  hr.appendChild(document.createElement("th"));
+  for (const t of p2.topics) {
+    const th = document.createElement("th"); th.className = "topic"; th.textContent = t;
+    hr.appendChild(th);
+  }
+  thead.appendChild(hr); table.appendChild(thead);
+  const tbody = document.createElement("tbody");
+  for (const role of p2.roles) {
+    const tr = document.createElement("tr");
+    const td0 = document.createElement("td"); td0.className = "role"; td0.textContent = role;
+    tr.appendChild(td0);
+    for (const topic of p2.topics) {
+      const td = document.createElement("td"); td.style.textAlign = "center";
+      const c = cellsBy[topic + "\u0000" + role];
+      const cell = document.createElement("span"); cell.className = "cell";
+      cell.setAttribute("tabindex", "0");
+      const vals = c ? [c.lexis, c.neutral, c.control] : [null, null, null];
+      const flipped = c && c.lexis && c.control && c.lexis !== c.control;
+      if (flipped) cell.classList.add("flip");
+      if (c && c.status !== "completed") cell.classList.add("failed");
+      for (const v of vals) {
+        const chip = document.createElement("span");
+        chip.className = "chip " + (v === "YES" ? "Y" : v === "NO" ? "N" : "X");
+        chip.textContent = v === "YES" ? "Y" : v === "NO" ? "N" : "–";
+        cell.appendChild(chip);
+      }
+      const rows = [
+        ["lexis", (c && c.lexis) || "no answer"],
+        ["neutral", (c && c.neutral) || "no answer"],
+        ["control", (c && c.control) || "no answer"],
+      ];
+      if (c && c.d_retries) rows.push(["gate retries (lexis)", String(c.d_retries)]);
+      if (c && c.status !== "completed") rows.push(["status", c.failed_stage ? `failed at ${c.failed_stage}` : c.status]);
+      const title = `${topic} × ${role}` + (flipped ? " — lexis flip" : "");
+      cell.addEventListener("pointermove", e => showTip(e, title, rows));
+      cell.addEventListener("pointerleave", hideTip);
+      cell.addEventListener("focus", e => {
+        const r = cell.getBoundingClientRect();
+        showTip({ clientX: r.left, clientY: r.bottom }, title, rows);
+      });
+      cell.addEventListener("blur", hideTip);
+      td.appendChild(cell); tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+
+  // --- control stability strips ---
+  const strips = document.getElementById("strips");
+  for (const [topic, seq] of Object.entries(p2.control_by_topic)) {
+    const row = document.createElement("div"); row.className = "row";
+    const name = document.createElement("span"); name.className = "name"; name.textContent = topic;
+    const chips = document.createElement("span"); chips.className = "chips";
+    for (const a of seq) {
+      const chip = document.createElement("span");
+      chip.className = "chip " + (a === "YES" ? "Y" : "N");
+      chip.textContent = a === "YES" ? "Y" : "N";
+      chips.appendChild(chip);
+    }
+    const uniq = new Set(seq).size;
+    const verdict = document.createElement("span"); verdict.className = "verdict";
+    verdict.textContent = uniq === 1 ? "stable" : "unstable — identical prompt, different answers";
+    row.append(name, chips, verdict); strips.appendChild(row);
+  }
+});
+</script>
+</body>
+</html>
