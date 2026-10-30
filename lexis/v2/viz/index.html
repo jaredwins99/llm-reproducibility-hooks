@@ -156,15 +156,26 @@ a { color: var(--accent); }
 .rolecard .why { color: var(--text-muted); font-size: 13px; margin: 0 0 6px; }
 .rolecard p { font-size: 14px; margin: 0; }
 
-/* ---- pipeline ---- */
-.pipe { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin: 12px 0; }
-.pipe .stage {
-  background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
-  padding: 10px 12px; flex: 1 1 150px; min-width: 150px;
+/* ---- register comparison ---- */
+.cmp-pick { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+.cmp-pick button {
+  font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-secondary); cursor: pointer;
 }
-.pipe .stage b { display: block; font-size: 14px; }
-.pipe .stage span { font-size: 13px; color: var(--text-secondary); }
-.pipe .arrow { align-self: center; color: var(--text-muted); font-size: 18px; }
+.cmp-pick button[aria-pressed="true"] {
+  background: var(--wash); border-color: var(--accent); color: var(--text-primary);
+}
+.cmpgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.cmpcard { border: 1px solid var(--border); border-radius: 10px; background: var(--surface-1); padding: 12px 14px; }
+.cmpcard .head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; font-weight: 600; font-size: 14px; }
+.cmpcard .head .ctl { font-size: 12px; color: var(--text-muted); font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+.cmpcard .head .flipnote { font-size: 12.5px; color: var(--accent); font-weight: 500; }
+.cmptext {
+  max-height: 260px; overflow-y: auto; white-space: pre-wrap;
+  font-size: 13px; line-height: 1.5; color: var(--text-secondary);
+  background: var(--page); border: 1px solid var(--grid); border-radius: 8px; padding: 10px 12px;
+}
 
 /* ---- stat tiles ---- */
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; }
@@ -282,17 +293,83 @@ footer { margin-top: 56px; font-size: 13px; color: var(--text-muted); }
   <div id="showcase"></div>
 
   <h2 id="design">How a trial works</h2>
-  <div class="pipe">
-    <div class="stage"><b>A — demand</b><span>a topic's question with pinned truth conditions (modal, decision rule, scope, comparison)</span></div>
-    <div class="arrow">→</div>
-    <div class="stage"><b>B — role</b><span>a speech community; never sees the topic</span></div>
-    <div class="arrow">→</div>
-    <div class="stage"><b>C — lexis</b><span>the role's bounded repertoire; never sees the topic</span></div>
-    <div class="arrow">→</div>
-    <div class="stage"><b>D — translate</b><span>renders the demand into the lexis; a haiku <b>drift gate</b> checks it against the truth conditions, up to 2 retries</span></div>
-    <div class="arrow">→</div>
-    <div class="stage"><b>E — respond</b><span>fresh model answers YES/NO; one call per arm</span></div>
-  </div>
+  <figure class="card" style="padding: 20px 16px 10px; margin: 12px 0;">
+    <svg viewBox="0 0 880 420" role="img" style="display:block; max-width:100%; height:auto; color: var(--text-primary); font-family: inherit;"
+         aria-label="One pinned demand takes three routes to the same fresh respondent: rendered into the role's lexis and drift-gated, reworded neutrally and drift-gated, or passed verbatim as control. The role and lexis stages never see the topic.">
+      <defs>
+        <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L8,4 L0,8 Z" fill="currentColor" fill-opacity="0.65"/>
+        </marker>
+        <marker id="arrA" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L8,4 L0,8 Z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+      <g stroke="currentColor" stroke-opacity="0.45" fill="none" stroke-width="1.2">
+        <rect x="180" y="16" width="150" height="46" rx="8"/>
+        <rect x="420" y="16" width="170" height="46" rx="8"/>
+        <rect x="20"  y="160" width="150" height="76" rx="8"/>
+        <rect x="420" y="120" width="170" height="56" rx="8"/>
+        <rect x="420" y="230" width="170" height="56" rx="8"/>
+        <rect x="630" y="122" width="80" height="52" rx="8"/>
+        <rect x="630" y="232" width="80" height="52" rx="8"/>
+        <rect x="730" y="120" width="130" height="56" rx="8"/>
+        <rect x="730" y="230" width="130" height="56" rx="8"/>
+        <rect x="730" y="330" width="130" height="56" rx="8"/>
+      </g>
+      <g stroke="currentColor" stroke-opacity="0.55" fill="none" stroke-width="1.2">
+        <line x1="330" y1="39" x2="414" y2="39" marker-end="url(#arr)"/>
+        <line x1="505" y1="62" x2="505" y2="114" marker-end="url(#arr)"/>
+        <polyline points="170,180 340,180 340,148 414,148" marker-end="url(#arr)"/>
+        <polyline points="170,210 340,210 340,258 414,258" marker-end="url(#arr)"/>
+        <polyline points="170,226 300,226 300,358 724,358" marker-end="url(#arr)"/>
+        <line x1="590" y1="148" x2="624" y2="148" marker-end="url(#arr)"/>
+        <line x1="710" y1="148" x2="724" y2="148" marker-end="url(#arr)"/>
+        <line x1="590" y1="258" x2="624" y2="258" marker-end="url(#arr)"/>
+        <line x1="710" y1="258" x2="724" y2="258" marker-end="url(#arr)"/>
+      </g>
+      <g stroke="var(--accent)" fill="none" stroke-width="1.2" stroke-dasharray="4 3">
+        <polyline points="670,174 670,198 505,198 505,182" marker-end="url(#arrA)"/>
+        <polyline points="670,284 670,308 505,308 505,292" marker-end="url(#arrA)"/>
+      </g>
+      <g font-size="13" font-weight="600" fill="currentColor">
+        <text x="255" y="36" text-anchor="middle">B — role</text>
+        <text x="505" y="36" text-anchor="middle">C — lexis spec</text>
+        <text x="95"  y="186" text-anchor="middle">A — demand</text>
+        <text x="505" y="142" text-anchor="middle">D — render in lexis</text>
+        <text x="505" y="252" text-anchor="middle">D — neutral rewording</text>
+        <text x="670" y="144" text-anchor="middle">gate</text>
+        <text x="670" y="254" text-anchor="middle">gate</text>
+        <text x="795" y="142" text-anchor="middle">E — respond</text>
+        <text x="795" y="252" text-anchor="middle">E — respond</text>
+        <text x="795" y="352" text-anchor="middle">E — respond</text>
+      </g>
+      <g font-size="11" fill="currentColor" fill-opacity="0.62">
+        <text x="255" y="52" text-anchor="middle">a speech community</text>
+        <text x="505" y="52" text-anchor="middle">its bounded repertoire</text>
+        <text x="95"  y="202" text-anchor="middle">pins truth conditions:</text>
+        <text x="95"  y="216" text-anchor="middle">modal · decision rule</text>
+        <text x="95"  y="230" text-anchor="middle">scope · comparison</text>
+        <text x="505" y="168" text-anchor="middle">same meaning, new form</text>
+        <text x="505" y="278" text-anchor="middle">bland register, same meaning</text>
+        <text x="670" y="160" text-anchor="middle">haiku</text>
+        <text x="670" y="270" text-anchor="middle">haiku</text>
+        <text x="795" y="158" text-anchor="middle">lexis arm</text>
+        <text x="795" y="268" text-anchor="middle">neutral arm</text>
+        <text x="795" y="368" text-anchor="middle">control arm</text>
+        <text x="862" y="404" text-anchor="end">fresh context each call · YES/NO</text>
+        <text x="640" y="40">B and C never see the topic</text>
+        <text x="520" y="86">repertoire</text>
+        <text x="250" y="174">demand</text>
+        <text x="250" y="240">demand</text>
+        <text x="460" y="350">bare demand, verbatim</text>
+      </g>
+      <g font-size="11" fill="var(--accent)">
+        <text x="587" y="212" text-anchor="middle">violations → retry ≤ 2</text>
+        <text x="587" y="322" text-anchor="middle">same gate</text>
+      </g>
+    </svg>
+    <figcaption class="sub" style="margin-top:8px">One pinned demand, three routes to the same fresh respondent. A flip = an arm's answer differs from control's within the same trial; a rendering that never passes the gate fails the trial instead of reaching E.</figcaption>
+  </figure>
   <p>Three paired arms per trial: <strong>lexis</strong> (the gated rendering), <strong>neutral</strong>
   (the same demand thoroughly reworded into a bland institutional register, also gated), and
   <strong>control</strong> (the bare demand). A flip = that arm's answer differs from control
@@ -323,6 +400,13 @@ footer { margin-top: 56px; font-size: 13px; color: var(--text-muted); }
     </div>
     <div class="matrix-wrap"><table class="matrix" id="matrix"></table></div>
     <p class="axisnote">Order inside each cell: <b>L</b>exis · <b>N</b>eutral · <b>C</b>ontrol.</p>
+  </div>
+
+  <div class="chart-card">
+    <h3>One respondent, six registers</h3>
+    <p class="sub">The same respondent model, the same pinned question — addressed in each role's lexis. Each card is that trial's lexis-arm response, with its paired control answer for the flip check. Pick a topic:</p>
+    <div class="cmp-pick" id="cmppick" role="group" aria-label="topic"></div>
+    <div class="cmpgrid" id="cmpgrid"></div>
   </div>
 
   <div class="chart-card">
@@ -584,15 +668,56 @@ fetch("data.json").then(r => r.json()).then(data => {
   }
   table.appendChild(tbody);
 
-  // --- answers drill-down (pure drop-downs; the matrix above stays untouched) ---
-  const ansRoot = document.getElementById("answers");
-  const ARM_LABEL = { lexis: "lexis", neutral_translation: "neutral rewording", control: "control" };
+  // --- register comparison: same respondent + question, across the six lexes ---
   const chipFor = v => {
     const chip = document.createElement("span");
     chip.className = "chip " + (v === "YES" ? "Y" : v === "NO" ? "N" : "X");
     chip.textContent = v === "YES" ? "Y" : v === "NO" ? "N" : "–";
     return chip;
   };
+  const cmpPick = document.getElementById("cmppick");
+  const cmpGrid = document.getElementById("cmpgrid");
+  const cellOf = (topic, role) => p2.cells.find(c => c.topic === topic && c.role === role);
+  function renderCmp(topic) {
+    for (const btn of cmpPick.querySelectorAll("button"))
+      btn.setAttribute("aria-pressed", String(btn.dataset.topic === topic));
+    cmpGrid.replaceChildren();
+    for (const role of p2.roles) {
+      const c = cellOf(topic, role);
+      const arms = (data.e_answers || {})[topic + "\u0000" + role] || {};
+      const card = document.createElement("div"); card.className = "cmpcard";
+      const head = document.createElement("div"); head.className = "head";
+      const rn = document.createElement("span"); rn.textContent = role;
+      head.append(rn, chipFor(c && c.lexis));
+      const ctl = document.createElement("span"); ctl.className = "ctl";
+      ctl.appendChild(document.createTextNode("control:"));
+      const cc = chipFor(c && c.control);
+      cc.style.width = "18px"; cc.style.height = "18px";
+      ctl.appendChild(cc);
+      head.appendChild(ctl);
+      if (c && c.lexis && c.control && c.lexis !== c.control) {
+        const fn = document.createElement("span"); fn.className = "flipnote";
+        fn.textContent = "flip"; head.appendChild(fn);
+      }
+      card.appendChild(head);
+      const txt = document.createElement("div"); txt.className = "cmptext";
+      txt.textContent = arms.lexis ? arms.lexis.text.trim()
+        : "No response — the rendering never passed the drift gate, so the trial failed before stage E.";
+      card.appendChild(txt);
+      cmpGrid.appendChild(card);
+    }
+  }
+  for (const topic of p2.topics) {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.dataset.topic = topic; btn.textContent = topic;
+    btn.addEventListener("click", () => renderCmp(topic));
+    cmpPick.appendChild(btn);
+  }
+  renderCmp("job seeking and economic waste");
+
+  // --- answers drill-down (pure drop-downs; the matrix above stays untouched) ---
+  const ansRoot = document.getElementById("answers");
+  const ARM_LABEL = { lexis: "lexis", neutral_translation: "neutral rewording", control: "control" };
   for (const topic of p2.topics) {
     const dt = document.createElement("details"); dt.className = "ans-topic";
     const st = document.createElement("summary");
