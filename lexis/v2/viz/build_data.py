@@ -11,11 +11,14 @@ Writes: lexis/v2/viz/data.json
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from math import comb
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+# Overridable so the static-site export can rebuild against the repo checkout.
+REPO_ROOT = Path(os.environ.get("LEXIS_REPO_ROOT",
+                                Path(__file__).resolve().parents[3]))
 WORK_DIR = Path("/home/godli/eval-work/lexis-pilot2")
 OUT = Path(__file__).resolve().parent / "data.json"
 
@@ -105,6 +108,50 @@ def analyze(path: Path) -> dict:
     }
 
 
+ARM_FILES = {
+    "lexis": "stage_E_lexis",
+    "neutral_translation": "stage_E_neutral_translation",
+    "control": "stage_E_control",
+}
+
+
+def e_answers() -> dict:
+    """Full E response texts per (topic, role, arm), from pilot2 trial dirs.
+
+    A stage_E_<arm>_retry file means the first call crashed (infra); the retry
+    holds the answer that was scored, so it wins when present.
+    """
+    out: dict[str, dict] = {}
+    for bundle_path in sorted(WORK_DIR.glob("trial-*/bundle.json")):
+        b = json.loads(bundle_path.read_text())
+        tdir = bundle_path.parent
+        arms = {}
+        for arm, stem in ARM_FILES.items():
+            retry = tdir / f"{stem}_retry.raw.txt"
+            first = tdir / f"{stem}.raw.txt"
+            path = retry if retry.exists() else first
+            if path.exists():
+                arms[arm] = {"text": path.read_text(), "retried": retry.exists()}
+        out[f"{b.get('topic')}\u0000{b.get('role')}"] = arms
+    return out
+
+
+def model_pin(path: Path) -> dict:
+    """Exact model IDs observed in the claude -p JSON envelopes, by stage kind."""
+    rows = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+    seen: dict[str, set] = {"E": set(), "GATE": set(), "A-D": set()}
+    for r in rows:
+        briefs = list(r.get("stage_briefs", []))
+        if r.get("e_brief"):
+            briefs.append(r["e_brief"])
+        for brf in briefs:
+            kind = ("GATE" if brf["stage"].startswith("GATE") else
+                    "E" if brf["stage"].startswith("E_") else "A-D")
+            for mid in brf.get("model_versions") or []:
+                seen[kind].add(mid)
+    return {k: sorted(v) for k, v in seen.items()}
+
+
 def showcase(topic: str = "veganism") -> list[dict]:
     """The same pinned demand rendered in every role's lexis (from pilot2 bundles)."""
     out = []
@@ -131,6 +178,8 @@ def main() -> None:
                   if l.strip()]
     data = {
         "pilots": {name: analyze(path) for name, path in PILOTS.items()},
+        "models": model_pin(PILOTS["pilot2"]),
+        "e_answers": e_answers(),
         "showcase_topic": "veganism",
         "showcase": showcase("veganism"),
         "topic_bank": [{"topic": t["topic"], "demand": t["demand"],

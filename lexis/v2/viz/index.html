@@ -125,6 +125,30 @@ table.matrix td.role { white-space: nowrap; color: var(--text-primary); }
 .chip.X { background: transparent; color: var(--text-muted); border: 1px solid var(--baseline); }
 .axisnote { font-size: 12.5px; color: var(--text-muted); margin-top: 6px; }
 
+/* ---- answers drill-down (pure drop-downs) ---- */
+details.ans-topic { border: 1px solid var(--border); border-radius: 10px; margin: 8px 0; background: var(--surface-1); }
+details.ans-topic > summary {
+  cursor: pointer; padding: 10px 14px; font-weight: 600; font-size: 15px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+details.ans-topic > summary .meta { font-weight: 400; font-size: 13px; color: var(--text-muted); }
+details.ans-role { border-top: 1px solid var(--grid); margin: 0; }
+details.ans-role > summary {
+  cursor: pointer; padding: 9px 14px 9px 26px; font-size: 14px; font-weight: 500;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+details.ans-role > summary .chips { display: inline-flex; gap: 2px; }
+details.ans-role > summary .flipnote { font-size: 12.5px; color: var(--accent); }
+.ansbody { padding: 0 14px 12px 26px; }
+.ansarm { margin: 10px 0; }
+.ansarm .armhead { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.ansarm .armhead .verdict { font-weight: 500; color: var(--text-secondary); }
+.anstext {
+  margin: 0; padding: 10px 12px; background: var(--page);
+  border: 1px solid var(--grid); border-radius: 8px;
+  white-space: pre-wrap; font-size: 13px; line-height: 1.5; color: var(--text-secondary);
+}
+
 /* ---- control strips ---- */
 .strips .row { display: flex; align-items: center; gap: 10px; margin: 6px 0; flex-wrap: wrap; }
 .strips .name { width: 240px; font-size: 14px; color: var(--text-primary); }
@@ -199,6 +223,7 @@ footer { margin-top: 56px; font-size: 13px; color: var(--text-muted); }
   in the same trial.</p>
 
   <h2 id="results">Pilot 2 results <span style="font-weight:400;font-size:14px;color:var(--text-muted)">(drift-gated, 5 topics × 6 roles)</span></h2>
+  <p class="sub" id="modelpin"></p>
   <div class="kpis" id="kpis"></div>
 
   <div class="chart-card">
@@ -222,6 +247,12 @@ footer { margin-top: 56px; font-size: 13px; color: var(--text-muted); }
     </div>
     <div class="matrix-wrap"><table class="matrix" id="matrix"></table></div>
     <p class="axisnote">Order inside each cell: <b>L</b>exis · <b>N</b>eutral · <b>C</b>ontrol.</p>
+  </div>
+
+  <div class="chart-card">
+    <h3>Read the answers</h3>
+    <p class="sub">Every response the respondent gave, verbatim — topic → role → the three arms. In the lexis arm the model answers <em>in the register it was addressed in</em>, having never been told the register's rules.</p>
+    <div id="answers"></div>
   </div>
 
   <div class="chart-card">
@@ -336,6 +367,17 @@ fetch("data.json").then(r => r.json()).then(data => {
     const n = document.createElement("div"); n.className = "note"; n.textContent = note;
     t.append(l, v, n); kp.appendChild(t);
   }
+  // --- model pin (exact IDs from each call's claude -p JSON envelope) ---
+  if (data.models) {
+    const aux = "claude-haiku-4-5-20251001";
+    const eMain = (data.models["E"] || []).filter(m => m !== aux).join(", ") || "(unknown)";
+    const adMain = (data.models["A-D"] || []).filter(m => m !== aux).join(", ") || "(unknown)";
+    const gate = (data.models["GATE"] || []).join(", ");
+    document.getElementById("modelpin").textContent =
+      `Models, pinned from every call's JSON envelope — respondent E: ${eMain} · stages A–D: ${adMain} · drift gate: ${gate}. ` +
+      `${aux} also appears in each envelope as the Claude CLI's auxiliary model.`;
+  }
+
   document.getElementById("p-inline").textContent = `p = ${p2.flips.mcnemar_p.toFixed(2)}`;
   document.getElementById("gate-inline").textContent = `${p2.gate.d_retried_trials} of ${p2.n_trials}`;
 
@@ -466,6 +508,60 @@ fetch("data.json").then(r => r.json()).then(data => {
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
+
+  // --- answers drill-down (pure drop-downs; the matrix above stays untouched) ---
+  const ansRoot = document.getElementById("answers");
+  const ARM_LABEL = { lexis: "lexis", neutral_translation: "neutral rewording", control: "control" };
+  const chipFor = v => {
+    const chip = document.createElement("span");
+    chip.className = "chip " + (v === "YES" ? "Y" : v === "NO" ? "N" : "X");
+    chip.textContent = v === "YES" ? "Y" : v === "NO" ? "N" : "–";
+    return chip;
+  };
+  for (const topic of p2.topics) {
+    const dt = document.createElement("details"); dt.className = "ans-topic";
+    const st = document.createElement("summary");
+    const tn = document.createElement("span"); tn.textContent = topic;
+    const roleCells = p2.cells.filter(c => c.topic === topic);
+    const nFlips = roleCells.filter(c => c.lexis && c.control && c.lexis !== c.control).length;
+    const meta = document.createElement("span"); meta.className = "meta";
+    meta.textContent = `${nFlips} lexis flip${nFlips === 1 ? "" : "s"}`;
+    st.append(tn, meta); dt.appendChild(st);
+    for (const c of roleCells.slice().sort((a, b) => a.role.localeCompare(b.role))) {
+      const dr = document.createElement("details"); dr.className = "ans-role";
+      const sr = document.createElement("summary");
+      const rn = document.createElement("span"); rn.textContent = c.role;
+      const chips = document.createElement("span"); chips.className = "chips";
+      for (const v of [c.lexis, c.neutral, c.control]) chips.appendChild(chipFor(v));
+      sr.append(rn, chips);
+      if (c.lexis && c.control && c.lexis !== c.control) {
+        const fn = document.createElement("span"); fn.className = "flipnote";
+        fn.textContent = "lexis flip"; sr.appendChild(fn);
+      }
+      dr.appendChild(sr);
+      const body = document.createElement("div"); body.className = "ansbody";
+      const arms = (data.e_answers || {})[topic + "\u0000" + c.role] || {};
+      const answered = { lexis: c.lexis, neutral_translation: c.neutral, control: c.control };
+      for (const arm of ["lexis", "neutral_translation", "control"]) {
+        const block = document.createElement("div"); block.className = "ansarm";
+        const head = document.createElement("div"); head.className = "armhead";
+        const name = document.createElement("span"); name.textContent = ARM_LABEL[arm];
+        head.append(name, chipFor(answered[arm]));
+        const verdict = document.createElement("span"); verdict.className = "verdict";
+        verdict.textContent = answered[arm] ? `answered ${answered[arm]}` : "no answer";
+        if (arms[arm] && arms[arm].retried) verdict.textContent += " (first call crashed; retry shown)";
+        head.appendChild(verdict);
+        block.appendChild(head);
+        const txt = document.createElement("div"); txt.className = "anstext";
+        txt.textContent = arms[arm] ? arms[arm].text.trim()
+          : "No response recorded — the trial failed before stage E (drift gate exhausted).";
+        block.appendChild(txt);
+        body.appendChild(block);
+      }
+      dr.appendChild(body); dt.appendChild(dr);
+    }
+    ansRoot.appendChild(dt);
+  }
 
   // --- control stability strips ---
   const strips = document.getElementById("strips");
