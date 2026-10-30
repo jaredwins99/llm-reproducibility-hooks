@@ -212,6 +212,20 @@ table.matrix td.role { white-space: nowrap; color: var(--text-primary); }
 .chip.X { background: transparent; color: var(--text-muted); border: 1px solid var(--baseline); }
 .axisnote { font-size: 12.5px; color: var(--text-muted); margin-top: 6px; }
 
+/* ---- conversation view ---- */
+.convo { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.convo-arm { border: 1px solid var(--border); border-radius: 10px; background: var(--surface-1); padding: 12px 14px; min-width: 0; }
+.convo-arm .armtitle { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+.convo-arm .armtitle .flipnote { font-size: 12.5px; color: var(--accent); font-weight: 500; }
+.speaker { font-size: 11.5px; color: var(--text-muted); margin: 0 0 3px; }
+.speaker.right { text-align: right; }
+.bubble {
+  border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.5;
+  white-space: pre-wrap; color: var(--text-secondary); overflow-wrap: break-word;
+}
+.bubble.q { background: var(--wash); border: 1px solid var(--accent); border-top-right-radius: 4px; margin: 0 0 12px 22px; max-height: 240px; overflow-y: auto; }
+.bubble.a { background: var(--page); border: 1px solid var(--grid); border-top-left-radius: 4px; margin-right: 22px; max-height: 320px; overflow-y: auto; }
+
 /* ---- answers drill-down (pure drop-downs) ---- */
 details.ans-topic { border: 1px solid var(--border); border-radius: 10px; margin: 8px 0; background: var(--surface-1); }
 details.ans-topic > summary {
@@ -427,6 +441,14 @@ footer { margin-top: 56px; font-size: 13px; color: var(--text-muted); }
     <p class="sub">The same respondent model, the same pinned question — addressed in each role's lexis. Each card is that trial's lexis-arm response, with its paired control answer for the flip check. Pick a topic:</p>
     <div class="cmp-pick" id="cmppick" role="group" aria-label="topic"></div>
     <div class="cmpgrid" id="cmpgrid"></div>
+  </div>
+
+  <div class="chart-card">
+    <h3>The conversation, arm by arm</h3>
+    <p class="sub">One trial as three short conversations: the finished question each arm was asked — byte-for-byte what the respondent received — and the respondent's reply. Both bubbles scroll when long.</p>
+    <div class="cmp-pick" id="convo-topics" role="group" aria-label="topic"></div>
+    <div class="cmp-pick" id="convo-roles" role="group" aria-label="role"></div>
+    <div class="convo" id="convo"></div>
   </div>
 
   <div class="chart-card">
@@ -734,6 +756,61 @@ fetch("data.json").then(r => r.json()).then(data => {
     cmpPick.appendChild(btn);
   }
   renderCmp("job seeking and economic waste");
+
+  // --- conversation view: finished question + E's reply, three arms side by side ---
+  const convoTopics = document.getElementById("convo-topics");
+  const convoRoles = document.getElementById("convo-roles");
+  const convoGrid = document.getElementById("convo");
+  const CONVO_ARMS = [
+    ["lexis", "lexis", "the translator's rendering"],
+    ["neutral_translation", "neutral rewording", "the bland rewording"],
+    ["control", "control", "the pinned demand, verbatim"],
+  ];
+  const convoSel = { topic: "immigration", role: "elk hunter" };
+  function renderConvo() {
+    for (const btn of convoTopics.querySelectorAll("button"))
+      btn.setAttribute("aria-pressed", String(btn.dataset.v === convoSel.topic));
+    for (const btn of convoRoles.querySelectorAll("button"))
+      btn.setAttribute("aria-pressed", String(btn.dataset.v === convoSel.role));
+    convoGrid.replaceChildren();
+    const key = convoSel.topic + "\u0000" + convoSel.role;
+    const c = cellOf(convoSel.topic, convoSel.role);
+    const prompts = (data.e_prompts || {})[key] || {};
+    const replies = (data.e_answers || {})[key] || {};
+    const answered = c ? { lexis: c.lexis, neutral_translation: c.neutral, control: c.control } : {};
+    for (const [arm, label, qNote] of CONVO_ARMS) {
+      const col = document.createElement("div"); col.className = "convo-arm";
+      const title = document.createElement("div"); title.className = "armtitle";
+      const nm = document.createElement("span"); nm.textContent = label;
+      title.append(nm, chipFor(answered[arm]));
+      if (arm !== "control" && answered[arm] && answered.control && answered[arm] !== answered.control) {
+        const fn = document.createElement("span"); fn.className = "flipnote";
+        fn.textContent = "flip vs control"; title.appendChild(fn);
+      }
+      col.appendChild(title);
+      const sq = document.createElement("p"); sq.className = "speaker right";
+      sq.textContent = `the question (${qNote})`;
+      const bq = document.createElement("div"); bq.className = "bubble q";
+      bq.textContent = prompts[arm] ? prompts[arm].trim()
+        : "No prompt — the rendering never passed the drift gate.";
+      const sa = document.createElement("p"); sa.className = "speaker";
+      sa.textContent = "the respondent (claude-sonnet-5, fresh context)";
+      const ba = document.createElement("div"); ba.className = "bubble a";
+      ba.textContent = replies[arm] ? replies[arm].text.trim()
+        : "No reply — the trial failed before stage E.";
+      col.append(sq, bq, sa, ba);
+      convoGrid.appendChild(col);
+    }
+  }
+  for (const [el, list, kind] of [[convoTopics, p2.topics, "topic"], [convoRoles, p2.roles, "role"]]) {
+    for (const v of list) {
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.dataset.v = v; btn.textContent = v;
+      btn.addEventListener("click", () => { convoSel[kind] = v; renderConvo(); });
+      el.appendChild(btn);
+    }
+  }
+  renderConvo();
 
   // --- answers drill-down (pure drop-downs; the matrix above stays untouched) ---
   const ansRoot = document.getElementById("answers");
