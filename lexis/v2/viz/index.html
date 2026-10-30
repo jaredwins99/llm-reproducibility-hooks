@@ -4,6 +4,82 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lexis</title>
+<script>
+/* Light/dark switch shared by every page on this host.
+ *
+ * The choice lives in a cookie because cookies ignore the port: flipping it on
+ * the hub or on any agent's page changes all of them. Pages carry an inline
+ * copy of this file so the switch works while the hub is down; keep the copies
+ * identical (notes/decisions/theme-switch.md lists them).
+ *
+ * A page opts in by honoring <html data-theme="light|dark"> in its CSS. It may
+ * place its own <button id="theme-switch">; otherwise one floats bottom-right.
+ */
+(function () {
+  var root = document.documentElement;
+  var query = matchMedia('(prefers-color-scheme: dark)');
+
+  function saved() {
+    var m = document.cookie.match(/(?:^|; )ui_theme=(light|dark)/);
+    return m ? m[1] : null;
+  }
+
+  function current() {
+    return root.dataset.theme || (query.matches ? 'dark' : 'light');
+  }
+
+  function paint() {
+    var b = document.getElementById('theme-switch');
+    if (!b) return;
+    var dark = current() === 'dark';
+    b.textContent = dark ? '☀' : '☾';
+    b.title = dark ? 'Switch to light' : 'Switch to dark';
+    b.setAttribute('aria-label', b.title);
+  }
+
+  function apply() {
+    var t = saved();
+    if (t) root.dataset.theme = t;
+    else delete root.dataset.theme;
+    paint();
+  }
+
+  function flip() {
+    var t = current() === 'dark' ? 'light' : 'dark';
+    document.cookie = 'ui_theme=' + t + '; path=/; max-age=31536000; SameSite=Lax';
+    apply();
+  }
+
+  function mount() {
+    var b = document.getElementById('theme-switch');
+    if (!b) {
+      b = document.createElement('button');
+      b.id = 'theme-switch';
+      b.style.cssText =
+        'position:fixed;right:14px;bottom:14px;z-index:2147483000;width:38px;' +
+        'height:38px;border-radius:50%;border:1px solid rgba(128,128,128,.45);' +
+        'background:rgba(128,128,128,.18);color:inherit;cursor:pointer;' +
+        'font:18px/1 system-ui,sans-serif;backdrop-filter:blur(6px);' +
+        '-webkit-backdrop-filter:blur(6px)';
+      document.body.appendChild(b);
+    }
+    b.type = 'button';
+    b.addEventListener('click', flip);
+    paint();
+  }
+
+  apply();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) apply();
+  });
+  query.addEventListener('change', paint);
+})();
+</script>
 <style>
 :root {
   color-scheme: light;
@@ -386,7 +462,6 @@ fetch("data.json").then(r => r.json()).then(data => {
     { name: "Pilot 1 — unguarded translations", lexis: p1.flips.lexis_rate, neutral: p1.flips.neutral_rate, n: p1.n_complete },
     { name: "Pilot 2 — pinned + drift-gated", lexis: p2.flips.lexis_rate, neutral: p2.flips.neutral_rate, n: p2.n_complete },
   ];
-  const css = getComputedStyle(document.body);
   const W = Math.min(900, document.querySelector("main").clientWidth - 32), H = 230;
   const m = { l: 44, r: 12, t: 10, b: 40 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
@@ -402,13 +477,13 @@ fetch("data.json").then(r => r.json()).then(data => {
     const line = document.createElementNS(svgNS, "line");
     line.setAttribute("x1", m.l); line.setAttribute("x2", W - m.r);
     line.setAttribute("y1", y(v)); line.setAttribute("y2", y(v));
-    line.setAttribute("stroke", v === 0 ? css.getPropertyValue("--baseline") : css.getPropertyValue("--grid"));
+    line.style.stroke = v === 0 ? "var(--baseline)" : "var(--grid)";
     line.setAttribute("stroke-width", "1");
     svg.appendChild(line);
     const t = document.createElementNS(svgNS, "text");
     t.setAttribute("x", m.l - 8); t.setAttribute("y", y(v) + 4);
     t.setAttribute("text-anchor", "end"); t.setAttribute("font-size", "11.5");
-    t.setAttribute("fill", css.getPropertyValue("--text-muted"));
+    t.style.fill = "var(--text-muted)";
     t.textContent = (v * 100) + "%";
     svg.appendChild(t);
   }
@@ -424,7 +499,7 @@ fetch("data.json").then(r => r.json()).then(data => {
       path.setAttribute("d",
         `M ${x} ${bot} L ${x} ${top + r} Q ${x} ${top} ${x + r} ${top} ` +
         `L ${x + barW - r} ${top} Q ${x + barW} ${top} ${x + barW} ${top + r} L ${x + barW} ${bot} Z`);
-      path.setAttribute("fill", css.getPropertyValue(tok));
+      path.style.fill = `var(${tok})`;
       path.style.cursor = "default";
       const pct = (100 * val).toFixed(1) + "%";
       path.addEventListener("pointermove", e => showTip(e, g.name, [
@@ -437,20 +512,20 @@ fetch("data.json").then(r => r.json()).then(data => {
       lab.setAttribute("x", x + barW / 2); lab.setAttribute("y", top - 6);
       lab.setAttribute("text-anchor", "middle"); lab.setAttribute("font-size", "12");
       lab.setAttribute("font-weight", "600");
-      lab.setAttribute("fill", css.getPropertyValue("--text-primary"));
+      lab.style.fill = "var(--text-primary)";
       lab.textContent = (100 * val).toFixed(0) + "%";
       svg.appendChild(lab);
     });
     const name = document.createElementNS(svgNS, "text");
     name.setAttribute("x", cx); name.setAttribute("y", H - 20);
     name.setAttribute("text-anchor", "middle"); name.setAttribute("font-size", "12.5");
-    name.setAttribute("fill", css.getPropertyValue("--text-secondary"));
+    name.style.fill = "var(--text-secondary)";
     name.textContent = g.name.split(" — ")[0];
     svg.appendChild(name);
     const sub = document.createElementNS(svgNS, "text");
     sub.setAttribute("x", cx); sub.setAttribute("y", H - 5);
     sub.setAttribute("text-anchor", "middle"); sub.setAttribute("font-size", "11");
-    sub.setAttribute("fill", css.getPropertyValue("--text-muted"));
+    sub.style.fill = "var(--text-muted)";
     sub.textContent = g.name.split(" — ")[1] + ` (n=${g.n})`;
     svg.appendChild(sub);
   });
